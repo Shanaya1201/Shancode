@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { 
-  BookOpen, CheckCircle, Lock, Play, Layers, GitBranch, 
-  Sparkles, ArrowRight, BrainCircuit, ShieldAlert, Cpu 
+  BookOpen, CheckCircle, Lock, Play, Layers, 
+  ArrowRight, BrainCircuit, AlertCircle 
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -11,6 +11,7 @@ export default function Learn() {
   const [roadmap, setRoadmap] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('curriculum'); // 'curriculum' or 'skill_tree'
+  const [lockAlert, setLockAlert] = useState(null);
 
   useEffect(() => {
     api.getRoadmap()
@@ -20,6 +21,15 @@ export default function Learn() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  const handleConceptClick = (concept) => {
+    if (concept.status === 'locked') {
+      setLockAlert(`🔒 "${concept.title}" is locked. Complete previous lessons and quizzes to unlock this concept!`);
+      setTimeout(() => setLockAlert(null), 4000);
+      return;
+    }
+    navigate(`/learn/${concept.slug}`);
+  };
 
   if (loading) {
     return (
@@ -34,11 +44,36 @@ export default function Learn() {
   return (
     <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '32px 24px' }} className="animate-fade-in">
       
+      {/* Toast Alert for Locked Concepts */}
+      {lockAlert && (
+        <div style={{
+          position: 'fixed',
+          top: '80px',
+          right: '24px',
+          zIndex: 1000,
+          backgroundColor: 'rgba(239, 68, 68, 0.95)',
+          color: '#fff',
+          padding: '12px 20px',
+          borderRadius: '10px',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          fontSize: '0.9rem',
+          fontWeight: 600
+        }}>
+          <AlertCircle size={20} />
+          {lockAlert}
+        </div>
+      )}
+
       {/* Header Banner */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '16px',
         marginBottom: '32px',
         padding: '24px',
         borderRadius: 'var(--radius-xl)',
@@ -51,7 +86,7 @@ export default function Learn() {
             Structured Concept Mastery
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', maxWidth: '650px' }}>
-            Learn the core intuition through video lessons, visual animations, and comprehension quizzes before writing a single line of code.
+            Sequential, concept-first learning pipeline. Master intuition through videos and quizzes before solving code challenges.
           </p>
         </div>
 
@@ -103,7 +138,7 @@ export default function Learn() {
             Interactive Dependency Skill Tree
           </h3>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '32px' }}>
-            Advanced patterns unlock as you complete prerequisite foundations.
+            Sequential pattern progression enforces prerequisite mastery.
           </p>
 
           <div style={{
@@ -114,7 +149,7 @@ export default function Learn() {
             position: 'relative'
           }}>
             {/* Level 0: Basics */}
-            <div style={{ display: 'flex', gap: '20px' }}>
+            <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
               <div 
                 onClick={() => navigate('/learn/time-space-complexity')}
                 className="glass-panel-interactive" 
@@ -128,7 +163,7 @@ export default function Learn() {
             <div style={{ width: '2px', height: '20px', backgroundColor: 'var(--accent-primary)' }} />
 
             {/* Level 1: Arrays & Memory */}
-            <div style={{ display: 'flex', gap: '20px' }}>
+            <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
               <div 
                 onClick={() => navigate('/learn/two-pointer-technique')}
                 className="glass-panel-interactive" 
@@ -150,7 +185,7 @@ export default function Learn() {
             <div style={{ width: '2px', height: '20px', backgroundColor: 'var(--accent-primary)' }} />
 
             {/* Level 2: Sliding Window & Binary Search */}
-            <div style={{ display: 'flex', gap: '20px' }}>
+            <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
               <div 
                 onClick={() => navigate('/learn/sliding-window-technique')}
                 className="glass-panel-interactive" 
@@ -172,7 +207,7 @@ export default function Learn() {
             <div style={{ width: '2px', height: '20px', backgroundColor: 'var(--border-glass)' }} />
 
             {/* Level 3: Trees & Dynamic Programming */}
-            <div style={{ display: 'flex', gap: '20px' }}>
+            <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
               <div className="glass-panel" style={{ padding: '16px 24px', opacity: 0.75 }}>
                 <div style={{ color: 'var(--text-muted)', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Lock size={14} /> Trees & Tree Traversals
@@ -193,7 +228,7 @@ export default function Learn() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {roadmap.map(section => (
             <div key={section.id} className="glass-panel" style={{ padding: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
                 <div>
                   <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fff' }}>
                     {section.title}
@@ -217,18 +252,23 @@ export default function Learn() {
                 {section.concepts.map(c => {
                   const isDone = c.completed;
                   const isRunning = c.status === 'in_progress';
+                  const isLocked = c.status === 'locked';
+
                   return (
                     <div
                       key={c.id}
-                      onClick={() => navigate(`/learn/${c.slug}`)}
-                      className="glass-panel-interactive"
+                      onClick={() => handleConceptClick(c)}
+                      className={isLocked ? 'glass-panel' : 'glass-panel-interactive'}
                       style={{
                         padding: '14px 16px',
-                        cursor: 'pointer',
+                        cursor: isLocked ? 'not-allowed' : 'pointer',
+                        opacity: isLocked ? 0.65 : 1,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        backgroundColor: isDone ? 'rgba(16, 185, 129, 0.05)' : (isRunning ? 'rgba(99, 102, 241, 0.08)' : 'var(--bg-primary)')
+                        backgroundColor: isDone 
+                          ? 'rgba(16, 185, 129, 0.05)' 
+                          : (isRunning ? 'rgba(99, 102, 241, 0.08)' : (isLocked ? 'rgba(15, 23, 42, 0.6)' : 'var(--bg-primary)'))
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -236,20 +276,26 @@ export default function Learn() {
                           <CheckCircle size={18} color="var(--success)" />
                         ) : isRunning ? (
                           <Play size={18} color="var(--accent-primary)" fill="var(--accent-primary)" />
+                        ) : isLocked ? (
+                          <Lock size={18} color="var(--text-muted)" />
                         ) : (
                           <BookOpen size={18} color="var(--text-muted)" />
                         )}
                         <div>
-                          <div style={{ fontSize: '0.9rem', fontWeight: 600, color: isDone ? 'var(--text-primary)' : '#fff' }}>
+                          <div style={{ fontSize: '0.9rem', fontWeight: 600, color: isDone ? 'var(--text-primary)' : (isLocked ? 'var(--text-muted)' : '#fff') }}>
                             {c.title}
                           </div>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                            {isDone ? 'Completed 🎉' : (isRunning ? `Progress: ${c.video_progress_pct}%` : 'Not Started')}
+                            {isDone ? 'Completed 🎉' : (isRunning ? `Progress: ${c.video_progress_pct}%` : (isLocked ? 'Locked (Prerequisites Required)' : 'Available'))}
                           </div>
                         </div>
                       </div>
 
-                      <ArrowRight size={16} color="var(--text-muted)" />
+                      {isLocked ? (
+                        <Lock size={14} color="var(--text-muted)" />
+                      ) : (
+                        <ArrowRight size={16} color="var(--text-muted)" />
+                      )}
                     </div>
                   );
                 })}

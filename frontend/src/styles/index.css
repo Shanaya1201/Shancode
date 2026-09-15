@@ -200,3 +200,20 @@ body {
 .pulse-glow {
   animation: pulseGlow 2.5s infinite ease-in-out;
 }
+
+/* Responsive Breakpoints */
+@media (max-width: 1024px) {
+  .ide-grid {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-links {
+    display: none;
+  }
+  .navbar-mobile-toggle {
+    display: block;
+  }
+}
