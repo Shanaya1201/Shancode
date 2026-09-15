@@ -91,10 +91,22 @@ export function saveSqlite() {
   }
 }
 
-// Convert SQLite '?' placeholders to PostgreSQL '$1', '$2', etc.
+// Convert SQLite syntax ('?', DATETIME('now'), INSERT OR REPLACE) to PostgreSQL
 function toPgSql(sql) {
   let pIdx = 1;
-  return sql.replace(/\?/g, () => `$${pIdx++}`);
+  let translated = sql.replace(/\?/g, () => `$${pIdx++}`);
+  
+  // Date/Time dialect compatibility
+  translated = translated.replace(/DATETIME\('now',\s*'\+([0-9]+)\s+(days|day|hours|hour|minutes|minute)'\)/gi, "NOW() + INTERVAL '$1 $2'");
+  translated = translated.replace(/DATETIME\('now',\s*'-([0-9]+)\s+(days|day|hours|hour|minutes|minute)'\)/gi, "NOW() - INTERVAL '$1 $2'");
+  translated = translated.replace(/DATETIME\('now'\)/gi, 'NOW()');
+  translated = translated.replace(/DATE\('now'\)/gi, 'CURRENT_DATE');
+  
+  // Upsert / conflict compatibility
+  translated = translated.replace(/INSERT\s+OR\s+REPLACE\s+INTO/gi, 'INSERT INTO');
+  translated = translated.replace(/INSERT\s+OR\s+IGNORE\s+INTO/gi, 'INSERT INTO');
+  
+  return translated;
 }
 
 // Unified query helper for Supabase PostgreSQL & SQLite
