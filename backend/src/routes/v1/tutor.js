@@ -6,15 +6,30 @@ const router = express.Router();
 
 router.post('/chat', optionalAuthMiddleware, async (req, res) => {
   try {
-    const { question, codeContext, problemTitle, conceptTitle, failedTestDiff, mode } = req.body;
+    const { 
+      question, 
+      codeContext, 
+      problemId, 
+      problemTitle, 
+      conceptId, 
+      conceptTitle, 
+      failedTestDiff, 
+      language, 
+      mode 
+    } = req.body;
+
     const response = await askAiTutor({
       question,
       codeContext,
+      problemId,
       problemTitle,
+      conceptId,
       conceptTitle,
       failedTestDiff,
+      language,
       mode
     });
+
     return res.json({ success: true, ...response });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
