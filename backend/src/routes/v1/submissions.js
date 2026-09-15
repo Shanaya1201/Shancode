@@ -1,13 +1,21 @@
 import express from 'express';
-import { query, run } from '../../config/db.js';
+import { query, run, withTransaction } from '../../config/db.js';
 import { authMiddleware, optionalAuthMiddleware } from '../../config/jwt.js';
 import { runCodeAgainstTestCases } from '../../services/codeRunner.js';
 import { recalculateUserSkills } from '../../services/analytics.js';
+import { rateLimit } from '../../middleware/rateLimit.js';
 
 const router = express.Router();
 
+// Rate limiter for execution runs (30 requests per minute)
+const executionLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: 'Code execution rate limit exceeded. Please wait a moment before running again.'
+});
+
 // Run code against custom test cases or sample test cases (No submission record created)
-router.post('/run', optionalAuthMiddleware, async (req, res) => {
+router.post('/run', optionalAuthMiddleware, executionLimiter, async (req, res) => {
   try {
     const { language, code, problem_id, custom_test_cases } = req.body;
     if (!language || !code) {
@@ -34,7 +42,7 @@ router.post('/run', optionalAuthMiddleware, async (req, res) => {
 });
 
 // Submit code against all test cases and record official submission
-router.post('/submit', authMiddleware, async (req, res) => {
+router.post('/submit', authMiddleware, executionLimiter, async (req, res) => {
   try {
     const userId = req.user.id;
     const { problem_id, language, code, integrity_meta } = req.body;
@@ -54,48 +62,57 @@ router.post('/submit', authMiddleware, async (req, res) => {
     // Run in isolated sandbox
     const result = await runCodeAgainstTestCases(language, code, testCases);
 
-    // Save submission to database
-    const subRes = await run(`
-      INSERT INTO submissions (
-        user_id, problem_id, language, code, verdict, runtime_ms, memory_kb,
-        passed_tests, total_tests, failed_case_diff_json
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [
-      userId,
-      problem_id,
-      language,
-      code,
-      result.verdict,
-      result.runtime_ms,
-      result.memory_kb,
-      result.passed_tests,
-      result.total_tests,
-      result.failed_case ? JSON.stringify(result.failed_case) : null
-    ]);
-
-    // If accepted, update XP, daily goal & check for first problem solve achievement
+    let subId = 0;
     let xpGained = 0;
-    if (result.verdict === 'Accepted') {
-      const priorAccepted = await query(`
-        SELECT id FROM submissions WHERE user_id = ? AND problem_id = ? AND verdict = 'Accepted' AND id != ?
-      `, [userId, problem_id, subRes.lastInsertRowid]);
 
-      // Only award first-time XP
-      if (priorAccepted.length === 0) {
-        xpGained = 50;
-        await run(`UPDATE users SET xp = xp + ? WHERE id = ?`, [xpGained, userId]);
+    await withTransaction(async (tx) => {
+      // Save submission to database
+      const subRes = await tx.run(`
+        INSERT INTO submissions (
+          user_id, problem_id, language, code, verdict, runtime_ms, memory_kb,
+          passed_tests, total_tests, failed_case_diff_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        userId,
+        problem_id,
+        language,
+        code,
+        result.verdict,
+        result.runtime_ms,
+        result.memory_kb,
+        result.passed_tests,
+        result.total_tests,
+        result.failed_case ? JSON.stringify(result.failed_case) : null
+      ]);
 
-        // Daily goal update
-        const today = new Date().toISOString().split('T')[0];
-        await run(`
-          INSERT INTO daily_goals (user_id, date, target_problems, solved_problems)
-          VALUES (?, ?, 3, 1)
-          ON CONFLICT(user_id, date) DO UPDATE SET
-            solved_problems = daily_goals.solved_problems + 1,
-            completed = CASE WHEN daily_goals.solved_problems + 1 >= daily_goals.target_problems THEN 1 ELSE 0 END
-        `, [userId, today]);
+      subId = subRes.lastInsertRowid;
+
+      // If accepted, check for first-time solve and award XP transactionally
+      if (result.verdict === 'Accepted') {
+        const priorAccepted = await tx.query(`
+          SELECT id FROM submissions WHERE user_id = ? AND problem_id = ? AND verdict = 'Accepted' AND id != ?
+        `, [userId, problem_id, subId]);
+
+        if (priorAccepted.length === 0) {
+          xpGained = 100;
+          await tx.run(`UPDATE users SET xp = xp + ? WHERE id = ?`, [xpGained, userId]);
+          await tx.run(`
+            INSERT INTO xp_transactions (user_id, amount, source, reference_id)
+            VALUES (?, ?, 'problem_solve', ?)
+          `, [userId, xpGained, `problem_${problem_id}`]);
+
+          // Daily goal update
+          const today = new Date().toISOString().split('T')[0];
+          await tx.run(`
+            INSERT INTO daily_goals (user_id, date, target_problems, solved_problems)
+            VALUES (?, ?, 3, 1)
+            ON CONFLICT(user_id, date) DO UPDATE SET
+              solved_problems = daily_goals.solved_problems + 1,
+              completed = CASE WHEN daily_goals.solved_problems + 1 >= daily_goals.target_problems THEN 1 ELSE 0 END
+          `, [userId, today]);
+        }
       }
-    }
+    });
 
     // Recalculate skill matrix
     await recalculateUserSkills(userId);
@@ -110,7 +127,7 @@ router.post('/submit', authMiddleware, async (req, res) => {
 
     return res.json({
       success: true,
-      submission_id: subRes.lastInsertRowid,
+      submission_id: subId,
       verdict: result.verdict,
       runtime_ms: result.runtime_ms,
       memory_kb: result.memory_kb,
