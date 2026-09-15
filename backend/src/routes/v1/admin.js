@@ -1,6 +1,7 @@
 import express from 'express';
 import { query, run } from '../../config/db.js';
-import { authMiddleware, requireAdmin } from '../../config/jwt.js';
+import { authMiddleware } from '../../config/jwt.js';
+import { requireAdmin } from '../../middleware/rbac.js';
 
 const router = express.Router();
 
