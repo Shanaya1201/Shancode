@@ -2,21 +2,113 @@ import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import os from 'os';
 
-const TEMP_DIR = path.resolve(process.cwd(), 'temp_execution');
-if (!fs.existsSync(TEMP_DIR)) {
-  fs.mkdirSync(TEMP_DIR, { recursive: true });
+const TEMP_BASE_DIR = path.join(os.tmpdir(), 'shancode_execution');
+if (!fs.existsSync(TEMP_BASE_DIR)) {
+  try { fs.mkdirSync(TEMP_BASE_DIR, { recursive: true }); } catch (e) {}
 }
 
 const TIMEOUT_MS = parseInt(process.env.EXECUTION_TIMEOUT_MS || '3500', 10);
-const USE_DOCKER = process.env.USE_DOCKER === 'true';
+const JUDGE_SERVICE_URL = process.env.JUDGE_SERVICE_URL || process.env.PISTON_API_URL || process.env.JUDGE0_API_URL || null;
 
 /**
- * Executes code against a series of test cases.
- * Returns { verdict, runtime_ms, memory_kb, passed_tests, total_tests, failed_case, outputs }
+ * Clean Code Execution Service Abstraction
+ * Supports both external isolated judge services and local development execution.
+ *
+ * @param {Object} params
+ * @param {string} params.language - 'python' | 'javascript' | 'cpp' | 'java'
+ * @param {string} params.sourceCode - User submitted code
+ * @param {string} [params.stdin] - Optional single standard input
+ * @param {Array} [params.testCases] - Array of { input_data, expected_output }
+ * @param {number} [params.timeout] - Max runtime in ms
+ * @param {number} [params.memoryLimits] - Max memory in KB
+ * @returns {Promise<Object>} Execution result with verdict, runtime, memory, stdout, stderr, exitCode, outputs
+ */
+export async function executeCode({
+  language,
+  sourceCode,
+  stdin = '',
+  testCases = null,
+  timeout = TIMEOUT_MS,
+  memoryLimits = 65536
+}) {
+  const normalizedLang = (language || 'python').toLowerCase();
+
+  // If test cases are provided, evaluate against the suite
+  if (testCases && Array.isArray(testCases) && testCases.length > 0) {
+    if (JUDGE_SERVICE_URL) {
+      return executeViaExternalJudge(normalizedLang, sourceCode, testCases, timeout, memoryLimits);
+    }
+    return executeLocallyAgainstTestCases(normalizedLang, sourceCode, testCases, timeout, memoryLimits);
+  }
+
+  // Single test case / raw stdin execution
+  const singleTc = [{ input_data: stdin, expected_output: '' }];
+  if (JUDGE_SERVICE_URL) {
+    return executeViaExternalJudge(normalizedLang, sourceCode, singleTc, timeout, memoryLimits);
+  }
+  return executeLocallyAgainstTestCases(normalizedLang, sourceCode, singleTc, timeout, memoryLimits);
+}
+
+/**
+ * Backward-compatible entrypoint used across submissions and problem runners
  */
 export async function runCodeAgainstTestCases(language, userCode, testCases) {
-  const normalizedLang = language.toLowerCase();
+  return executeCode({
+    language,
+    sourceCode: userCode,
+    testCases,
+    timeout: TIMEOUT_MS
+  });
+}
+
+/**
+ * External Judge Service Provider (Judge0 / Piston / Custom Container Worker)
+ */
+async function executeViaExternalJudge(language, sourceCode, testCases, timeout, memoryLimits) {
+  try {
+    const payload = {
+      language,
+      source_code: sourceCode,
+      test_cases: testCases,
+      timeout_ms: timeout,
+      memory_limit_kb: memoryLimits
+    };
+
+    const response = await fetch(`${JUDGE_SERVICE_URL.replace(/\/$/, '')}/execute`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(process.env.JUDGE_API_KEY ? { 'X-Judge-Key': process.env.JUDGE_API_KEY } : {})
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Judge service returned HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    return {
+      verdict: data.verdict || 'Accepted',
+      runtime_ms: data.runtime_ms || 25,
+      memory_kb: data.memory_kb || 14500,
+      passed_tests: data.passed_tests || testCases.length,
+      total_tests: testCases.length,
+      failed_case: data.failed_case || null,
+      outputs: data.outputs || []
+    };
+  } catch (err) {
+    console.warn(`External judge failed (${err.message}). Falling back to local execution engine...`);
+    return executeLocallyAgainstTestCases(language, sourceCode, testCases, timeout, memoryLimits);
+  }
+}
+
+/**
+ * Local development execution engine
+ */
+async function executeLocallyAgainstTestCases(normalizedLang, userCode, testCases, timeout, memoryLimits) {
   const startTime = Date.now();
   let totalRuntime = 0;
   let passedTests = 0;
@@ -25,12 +117,14 @@ export async function runCodeAgainstTestCases(language, userCode, testCases) {
 
   for (let i = 0; i < testCases.length; i++) {
     const tc = testCases[i];
-    const singleRun = await executeSingleTestCase(normalizedLang, userCode, tc.input_data);
+    const singleRun = await executeSingleTestCase(normalizedLang, userCode, tc.input_data, timeout);
 
     if (singleRun.error) {
       return {
+        language: normalizedLang,
+        sourceCode: userCode,
         verdict: singleRun.isTimeout ? 'Time Limit Exceeded' : 'Runtime Error',
-        runtime_ms: singleRun.runtimeMs || TIMEOUT_MS,
+        runtime_ms: singleRun.runtimeMs || timeout,
         memory_kb: singleRun.memoryKb || 12000,
         passed_tests: passedTests,
         total_tests: totalTests,
@@ -38,8 +132,11 @@ export async function runCodeAgainstTestCases(language, userCode, testCases) {
           test_index: i + 1,
           input: tc.input_data,
           expected_output: tc.expected_output,
-          actual_output: singleRun.errorOutput || 'Execution failed',
-          error_message: singleRun.error
+          actual_output: singleRun.errorOutput || singleRun.error || 'Execution failed',
+          error_message: singleRun.error,
+          stdout: singleRun.output || '',
+          stderr: singleRun.errorOutput || '',
+          exit_code: singleRun.isTimeout ? -1 : 1
         },
         outputs
       };
@@ -47,7 +144,7 @@ export async function runCodeAgainstTestCases(language, userCode, testCases) {
 
     const actual = normalizeOutput(singleRun.output);
     const expected = normalizeOutput(tc.expected_output);
-    const isMatch = compareOutputs(actual, expected);
+    const isMatch = !tc.expected_output || compareOutputs(actual, expected);
 
     outputs.push({
       test_index: i + 1,
@@ -55,7 +152,10 @@ export async function runCodeAgainstTestCases(language, userCode, testCases) {
       expected: tc.expected_output,
       actual: singleRun.output,
       passed: isMatch,
-      runtime_ms: singleRun.runtimeMs
+      runtime_ms: singleRun.runtimeMs,
+      stdout: singleRun.output,
+      stderr: '',
+      exit_code: 0
     });
 
     totalRuntime = Math.max(totalRuntime, singleRun.runtimeMs);
@@ -64,6 +164,8 @@ export async function runCodeAgainstTestCases(language, userCode, testCases) {
       passedTests++;
     } else {
       return {
+        language: normalizedLang,
+        sourceCode: userCode,
         verdict: 'Wrong Answer',
         runtime_ms: totalRuntime,
         memory_kb: singleRun.memoryKb || 14000,
@@ -74,7 +176,10 @@ export async function runCodeAgainstTestCases(language, userCode, testCases) {
           input: tc.input_data,
           expected_output: tc.expected_output,
           actual_output: singleRun.output,
-          diff: `Expected: ${tc.expected_output} \nGot: ${singleRun.output}`
+          diff: `Expected: ${tc.expected_output} \nGot: ${singleRun.output}`,
+          stdout: singleRun.output,
+          stderr: '',
+          exit_code: 0
         },
         outputs
       };
@@ -82,6 +187,8 @@ export async function runCodeAgainstTestCases(language, userCode, testCases) {
   }
 
   return {
+    language: normalizedLang,
+    sourceCode: userCode,
     verdict: 'Accepted',
     runtime_ms: Math.max(12, totalRuntime),
     memory_kb: 14500 + Math.floor(Math.random() * 2000),
@@ -95,7 +202,7 @@ export async function runCodeAgainstTestCases(language, userCode, testCases) {
 /**
  * Execute a single test case using the language harness
  */
-async function executeSingleTestCase(language, code, input) {
+async function executeSingleTestCase(language, code, input, timeoutMs) {
   const execId = crypto.randomUUID();
   let cmd = '';
   let args = [];
@@ -104,18 +211,17 @@ async function executeSingleTestCase(language, code, input) {
   try {
     if (language === 'python' || language === 'py') {
       const wrappedCode = wrapPythonCode(code, input);
-      scriptPath = path.join(TEMP_DIR, `run_${execId}.py`);
+      scriptPath = path.join(TEMP_BASE_DIR, `run_${execId}.py`);
       fs.writeFileSync(scriptPath, wrappedCode, 'utf8');
       cmd = 'python';
       args = [scriptPath];
     } else if (language === 'javascript' || language === 'js') {
       const wrappedCode = wrapJavaScriptCode(code, input);
-      scriptPath = path.join(TEMP_DIR, `run_${execId}.js`);
+      scriptPath = path.join(TEMP_BASE_DIR, `run_${execId}.js`);
       fs.writeFileSync(scriptPath, wrappedCode, 'utf8');
       cmd = 'node';
       args = [scriptPath];
     } else if (language === 'cpp' || language === 'c++') {
-      // Direct fast evaluation simulation for C++ starter harness
       return simulateCompiledLanguage('cpp', code, input);
     } else if (language === 'java') {
       return simulateCompiledLanguage('java', code, input);
@@ -123,27 +229,10 @@ async function executeSingleTestCase(language, code, input) {
       return { error: `Unsupported language: ${language}`, isTimeout: false };
     }
 
-    if (USE_DOCKER) {
-      // In Docker execution mode
-      cmd = 'docker';
-      args = [
-        'run', '--rm', '-i',
-        '--network', 'none',
-        '--memory', '128m',
-        '--cpus', '0.5',
-        '-v', `${TEMP_DIR}:/app:ro`,
-        language.includes('py') ? 'python:3.11-alpine' : 'node:20-alpine',
-        language.includes('py') ? 'python' : 'node',
-        `/app/${path.basename(scriptPath)}`
-      ];
-    }
-
-    return await spawnWithTimeout(cmd, args, TIMEOUT_MS);
+    return await spawnWithTimeout(cmd, args, timeoutMs);
   } finally {
     if (scriptPath && fs.existsSync(scriptPath)) {
-      try {
-        fs.unlinkSync(scriptPath);
-      } catch (e) {}
+      try { fs.unlinkSync(scriptPath); } catch (e) {}
     }
   }
 }

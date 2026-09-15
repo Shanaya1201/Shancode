@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 import { initSchema } from './models/schema.js';
+import { getDb } from './config/db.js';
 import authRoutes from './routes/v1/auth.js';
 import learnRoutes from './routes/v1/learn.js';
 import problemsRoutes from './routes/v1/problems.js';
@@ -19,23 +20,62 @@ import notificationsRoutes from './routes/v1/notifications.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = parseInt(process.env.PORT || '5000', 10);
+const isProduction = process.env.NODE_ENV === 'production';
 
-// Middlewares
-app.use(cors());
+// Production Security Headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  if (isProduction) {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  next();
+});
+
+// Configurable Dynamic CORS
+const defaultOrigins = ['http://localhost:5173', 'http://localhost:3000', 'https://shancode.vercel.app'];
+const configuredOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(',').map(s => s.trim()).filter(Boolean)
+  : defaultOrigins;
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || !isProduction || configuredOrigins.includes('*') || configuredOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      // Allow Vercel preview domains if main domain is configured
+      const isVercelPreview = origin.endsWith('.vercel.app') && configuredOrigins.some(o => o.includes('vercel.app'));
+      if (isVercelPreview) {
+        callback(null, true);
+      } else {
+        callback(new Error('CORS request blocked by Shancode CORS policy'));
+      }
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Healthcheck
-app.get('/api/health', (req, res) => {
-  res.json({
+// Safe Healthcheck Endpoints (Does not expose internal credentials or database passwords)
+const healthHandler = (req, res) => {
+  res.status(200).json({
     status: 'ok',
     service: 'Shancode API Gateway',
     version: '1.0.0',
-    tagline: 'Learn the concept. Master the pattern. Solve the problem.',
+    environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString()
   });
-});
+};
+
+app.get('/api/health', healthHandler);
+app.get('/api/v1/health', healthHandler);
 
 // Mount Mobile-Ready Versioned REST APIs (/api/v1/*)
 app.use('/api/v1/auth', authRoutes);
@@ -50,23 +90,28 @@ app.use('/api/v1/discussions', discussionsRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/notifications', notificationsRoutes);
 
-// Global Error Handler
+// Global Safe Error Handler
 app.use((err, req, res, next) => {
-  console.error('Unhandled Server Error:', err);
+  if (err.message && err.message.includes('CORS')) {
+    return res.status(403).json({ success: false, error: 'CORS origin denied' });
+  }
+  console.error('Server error:', err.message || err);
   res.status(500).json({
     success: false,
-    error: err.message || 'Internal Server Error'
+    error: isProduction ? 'Internal Server Error' : (err.message || 'Internal Server Error')
   });
 });
+
+let serverInstance = null;
 
 // Initialize schema and start server
 async function startServer() {
   try {
     await initSchema();
-    app.listen(PORT, () => {
+    serverInstance = app.listen(PORT, '0.0.0.0', () => {
       console.log(`\n======================================================`);
-      console.log(`🚀 Shancode Backend Server running on http://localhost:${PORT}`);
-      console.log(`📖 API Base URL: http://localhost:${PORT}/api/v1`);
+      console.log(`🚀 Shancode Backend running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);
+      console.log(`📖 Health Check: http://localhost:${PORT}/api/v1/health`);
       console.log(`======================================================\n`);
     });
   } catch (err) {
@@ -75,4 +120,29 @@ async function startServer() {
   }
 }
 
+// Graceful Shutdown
+function gracefulShutdown(signal) {
+  console.log(`\nReceived ${signal}. Shutting down Shancode server gracefully...`);
+  if (serverInstance) {
+    serverInstance.close(async () => {
+      console.log('HTTP server closed.');
+      try {
+        const dbObj = await getDb();
+        if (dbObj.type === 'pg' && dbObj.pool) {
+          await dbObj.pool.end();
+          console.log('PostgreSQL connection pool drained.');
+        }
+      } catch (e) {}
+      process.exit(0);
+    });
+  } else {
+    process.exit(0);
+  }
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
 startServer();
+
+export default app;

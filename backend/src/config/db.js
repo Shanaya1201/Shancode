@@ -37,6 +37,11 @@ export function getSupabase() {
 }
 
 export async function getDb() {
+  // In production, enforce Supabase PostgreSQL
+  if (isProduction && (!DB_URL || DB_URL.includes('your-project'))) {
+    throw new Error('FATAL: SUPABASE_DB_URL or DATABASE_URL environment variable is required in production mode. SQLite fallback is disabled in production.');
+  }
+
   // If Supabase PostgreSQL URL is provided, connect via connection pool
   if (DB_URL && !DB_URL.includes('your-project')) {
     if (!pgPool) {
