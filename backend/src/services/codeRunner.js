@@ -219,54 +219,33 @@ ${userCode}
 
 def __run_solution__():
     raw_in = """${rawInput.replace(/\\/g, '\\\\').replace(/"""/g, '\\"""')}"""
-    # Find defined functions in user's submission
-    # Attempt to parse json input arguments
-    try:
-        if raw_in.strip().startswith('{') or raw_in.strip().startswith('['):
-            parsed_args = json.loads(raw_in)
-        else:
-            # Handle multiple args or simple lines
-            lines = [l.strip() for l in raw_in.strip().split('\\n') if l.strip()]
-            parsed_args = []
-            for l in lines:
-                try:
-                    parsed_args.append(json.loads(l))
-                except:
-                    parsed_args.append(l)
-    except Exception:
-        parsed_args = [raw_in.strip()]
+    lines = [l.strip() for l in raw_in.strip().split('\\n') if l.strip()]
+    parsed_args = []
+    for l in lines:
+        try:
+            parsed_args.append(json.loads(l))
+        except Exception:
+            parsed_args.append(l)
 
     # Find the main user function or Solution class
     if 'Solution' in globals():
         sol = Solution()
-        # Find method on Solution that is not __init__
         methods = [m for m in dir(sol) if not m.startswith('__') and callable(getattr(sol, m))]
         if methods:
             target = getattr(sol, methods[0])
-            if isinstance(parsed_args, list):
-                try:
-                    res = target(*parsed_args)
-                except TypeError:
-                    res = target(parsed_args)
-            elif isinstance(parsed_args, dict):
-                res = target(**parsed_args)
-            else:
-                res = target(parsed_args)
-            print(json.dumps(res) if not isinstance(res, str) else res)
-            return
-
-    # Fallback to globally defined function
-    user_funcs = [v for k, v in list(globals().items()) if callable(v) and not k.startswith('_') and k != '__run_solution__' and k != 'json' and k != 'sys']
-    if user_funcs:
-        target = user_funcs[-1]
-        if isinstance(parsed_args, list):
             try:
                 res = target(*parsed_args)
             except TypeError:
                 res = target(parsed_args)
-        elif isinstance(parsed_args, dict):
-            res = target(**parsed_args)
-        else:
+            print(json.dumps(res) if not isinstance(res, str) else res)
+            return
+
+    user_funcs = [v for k, v in list(globals().items()) if callable(v) and not k.startswith('_') and k != '__run_solution__' and k != 'json' and k != 'sys']
+    if user_funcs:
+        target = user_funcs[-1]
+        try:
+            res = target(*parsed_args)
+        except TypeError:
             res = target(parsed_args)
         print(json.dumps(res) if not isinstance(res, str) else res)
     else:
@@ -283,44 +262,46 @@ ${userCode}
 
 function __run__() {
   const rawInput = \`${rawInput.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`;
-  let parsedArgs;
-  try {
-    const trimmed = rawInput.trim();
-    if (trimmed.startsWith('[') || trimmed.startsWith('{') || !isNaN(Number(trimmed)) || trimmed === 'true' || trimmed === 'false') {
-      parsedArgs = [JSON.parse(trimmed)];
-    } else {
-      const lines = trimmed.split('\\n').filter(Boolean);
-      parsedArgs = lines.map(l => {
-        try { return JSON.parse(l); } catch(e) { return l; }
-      });
-    }
-  } catch(e) {
-    parsedArgs = [rawInput.trim()];
-  }
+  const lines = rawInput.trim().split('\\n').map(l => l.trim()).filter(Boolean);
+  const parsedArgs = lines.map(l => {
+    try { return JSON.parse(l); } catch(e) { return l; }
+  });
 
-  // Find candidate function
-  const funcs = [];
-  for (const key of Object.keys(globalThis)) {
-    if (typeof globalThis[key] === 'function' && !key.startsWith('_') && key !== '__run__' && key !== 'eval' && key !== 'fetch') {
-      funcs.push(globalThis[key]);
-    }
-  }
-
-  // If user declared a function like twoSum, longestSubstring, etc.
-  const userFunc = typeof solution === 'function' ? solution :
-                   typeof solve === 'function' ? solve :
-                   funcs[funcs.length - 1];
-
-  if (typeof userFunc === 'function') {
+  // Check if Solution class exists
+  if (typeof Solution === 'function') {
     try {
-      const res = userFunc.apply(null, Array.isArray(parsedArgs) ? parsedArgs : [parsedArgs]);
+      const sol = new Solution();
+      const methods = Object.getOwnPropertyNames(Object.getPrototypeOf(sol)).filter(m => m !== 'constructor');
+      if (methods.length > 0) {
+        const res = sol[methods[0]].apply(sol, parsedArgs);
+        console.log(typeof res === 'object' ? JSON.stringify(res) : String(res));
+        return;
+      }
+    } catch (e) {}
+  }
+
+  // Look for exported / declared functions
+  const candidates = [
+    typeof twoSum === 'function' ? twoSum : null,
+    typeof lengthOfLongestSubstring === 'function' ? lengthOfLongestSubstring : null,
+    typeof isPalindrome === 'function' ? isPalindrome : null,
+    typeof maxArea === 'function' ? maxArea : null,
+    typeof search === 'function' ? search : null,
+    typeof climbStairs === 'function' ? climbStairs : null,
+    typeof solve === 'function' ? solve : null,
+    typeof solution === 'function' ? solution : null
+  ].filter(Boolean);
+
+  if (candidates.length > 0) {
+    try {
+      const res = candidates[0].apply(null, parsedArgs);
       console.log(typeof res === 'object' ? JSON.stringify(res) : String(res));
-    } catch(err) {
+    } catch (err) {
       console.error(err.message);
       process.exit(1);
     }
   } else {
-    console.error("No callable solution function found.");
+    console.error("No valid solution function found.");
     process.exit(1);
   }
 }
