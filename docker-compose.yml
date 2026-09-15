@@ -1,10 +1,30 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: shancode-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: shancode
+      POSTGRES_PASSWORD: shancode_secure_password_2026
+      POSTGRES_DB: shancodedb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shancode -d shancodedb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    container_name: shancode-backend
+    restart: unless-stopped
     ports:
       - "5000:5000"
     environment:
@@ -19,10 +39,13 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    container_name: shancode-frontend
+    restart: unless-stopped
     ports:
       - "3000:80"
     depends_on:
       - backend
 
 volumes:
+  postgres-data:
   backend-data:
