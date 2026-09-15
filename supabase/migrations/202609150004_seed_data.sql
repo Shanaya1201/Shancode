@@ -46,7 +46,7 @@ INSERT INTO concepts (
  '<svg viewBox="0 0 400 140" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="140" fill="#070a13" rx="10"/><rect x="40" y="50" width="40" height="40" fill="#151c2e" stroke="#6366f1"/><text x="55" y="75" fill="#fff">2</text><rect x="90" y="50" width="40" height="40" fill="#151c2e" stroke="#6366f1"/><text x="105" y="75" fill="#fff">7</text><rect x="310" y="50" width="40" height="40" fill="#151c2e" stroke="#6366f1"/><text x="320" y="75" fill="#fff">15</text><text x="45" y="115" fill="#10b981">Left ↑</text><text x="315" y="115" fill="#ef4444">Right ↑</text></svg>',
  '{"python": "def two_sum_sorted(nums, target):\n    left, right = 0, len(nums) - 1\n    while left < right:\n        s = nums[left] + nums[right]\n        if s == target: return [left, right]\n        elif s < target: left += 1\n        else: right -= 1\n    return []"}'::jsonb,
  '["Forgetting that the array must be sorted first", "Off-by-one errors when advancing pointer bounds"]'::jsonb,
- 'https://www.youtube.com/embed/cQ1Oz4ckcMM', 'youtube', 2)
+ 'https://www.youtube.com/embed/cQ1Oz4ckcMM', 'youtube', 1)
 ON CONFLICT (id) DO NOTHING;
 
 -- 4. QUIZZES & QUESTIONS
@@ -106,3 +106,19 @@ INSERT INTO profiles (user_id, avatar, bio, target_company, interview_readiness)
 (1, 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80', 'Aspiring Senior Software Engineer targeting FAANG', 'Google', 78),
 (2, 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80', 'Shancode Lead Architect', 'Meta', 95)
 ON CONFLICT (user_id) DO NOTHING;
+
+-- ==============================================================================
+-- 8. POSTGRESQL SEQUENCE REALIGNMENT
+-- Synchronize all BIGSERIAL sequences with the highest explicitly inserted IDs
+-- to ensure subsequent nextval() calls auto-generate unique primary keys properly.
+-- ==============================================================================
+SELECT setval(pg_get_serial_sequence('users', 'id'), COALESCE((SELECT MAX(id) FROM users), 1));
+SELECT setval(pg_get_serial_sequence('sections', 'id'), COALESCE((SELECT MAX(id) FROM sections), 1));
+SELECT setval(pg_get_serial_sequence('concepts', 'id'), COALESCE((SELECT MAX(id) FROM concepts), 1));
+SELECT setval(pg_get_serial_sequence('patterns', 'id'), COALESCE((SELECT MAX(id) FROM patterns), 1));
+SELECT setval(pg_get_serial_sequence('quizzes', 'id'), COALESCE((SELECT MAX(id) FROM quizzes), 1));
+SELECT setval(pg_get_serial_sequence('quiz_questions', 'id'), COALESCE((SELECT MAX(id) FROM quiz_questions), 1));
+SELECT setval(pg_get_serial_sequence('problems', 'id'), COALESCE((SELECT MAX(id) FROM problems), 1));
+SELECT setval(pg_get_serial_sequence('test_cases', 'id'), COALESCE((SELECT MAX(id) FROM test_cases), 1));
+SELECT setval(pg_get_serial_sequence('hints', 'id'), COALESCE((SELECT MAX(id) FROM hints), 1));
+SELECT setval(pg_get_serial_sequence('achievements', 'id'), COALESCE((SELECT MAX(id) FROM achievements), 1));

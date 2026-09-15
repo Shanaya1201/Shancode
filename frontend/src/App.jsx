@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
+import Login from './pages/Login';
 import Learn from './pages/Learn';
 import ConceptView from './pages/ConceptView';
 import Problems from './pages/Problems';
@@ -23,6 +24,7 @@ export default function App() {
           <main style={{ flex: 1 }}>
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
               <Route path="/learn" element={<Learn />} />
               <Route path="/learn/:slug" element={<ConceptView />} />
               <Route path="/problems" element={<Problems />} />

@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Code2, Flame, Zap, Bell, Search, User, LogOut, CheckCircle, 
-  BookOpen, Trophy, BarChart3, MessageSquare, ShieldCheck, Sparkles 
+  BookOpen, Trophy, BarChart3, MessageSquare, ShieldCheck, Sparkles, LogIn, ArrowRight 
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import AuthModal from './AuthModal';
 
 export default function Navbar() {
   const { user, logout, loginDemo } = useAuth();
@@ -18,6 +19,7 @@ export default function Navbar() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -36,7 +38,7 @@ export default function Navbar() {
       try {
         const probRes = await api.getProblems({ search: q });
         setSearchResults({
-          problems: probRes.problems.slice(0, 5)
+          problems: probRes.problems?.slice(0, 5) || []
         });
       } catch (err) {}
     } else {
@@ -131,7 +133,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Right actions: Search, Streaks, XP, Notifications, Profile */}
+        {/* Right actions: Search, Streaks, XP, Notifications, Profile / Auth */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           {/* Quick Search Trigger */}
           <button
@@ -154,7 +156,7 @@ export default function Navbar() {
             <kbd style={{ backgroundColor: 'var(--bg-primary)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7rem' }}>⌘K</kbd>
           </button>
 
-          {user && (
+          {user ? (
             <>
               {/* Streak Badge */}
               <div style={{
@@ -170,7 +172,7 @@ export default function Navbar() {
                 fontWeight: 700
               }}>
                 <Flame size={16} fill="#f59e0b" />
-                <span>{user.streak || 12}d</span>
+                <span>{user.streak || 14}d</span>
               </div>
 
               {/* XP Badge */}
@@ -187,7 +189,7 @@ export default function Navbar() {
                 fontWeight: 700
               }}>
                 <Zap size={16} fill="#a5b4fc" />
-                <span>{user.xp || 1250} XP</span>
+                <span>{user.xp || 1450} XP</span>
               </div>
 
               {/* Notifications */}
@@ -281,7 +283,7 @@ export default function Navbar() {
                     position: 'absolute',
                     right: 0,
                     top: '46px',
-                    width: '200px',
+                    width: '210px',
                     backgroundColor: 'var(--bg-secondary)',
                     border: '1px solid var(--border-glass)',
                     borderRadius: '12px',
@@ -290,7 +292,7 @@ export default function Navbar() {
                     zIndex: 60
                   }}>
                     <div style={{ padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                      <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{user.username}</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#fff' }}>{user.username}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)' }}>Target: {user.target_company || 'Google'}</div>
                     </div>
                     <Link
@@ -351,9 +353,31 @@ export default function Navbar() {
                 )}
               </div>
             </>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <button
+                onClick={() => setAuthModalOpen(true)}
+                className="glow-btn-primary"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 16px',
+                  fontSize: '0.85rem'
+                }}
+              >
+                <LogIn size={15} /> Sign In / Demo
+              </button>
+            </div>
           )}
         </div>
       </nav>
+
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={authModalOpen} 
+        onClose={() => setAuthModalOpen(false)} 
+      />
 
       {/* Global Search Modal */}
       {searchOpen && (
@@ -402,7 +426,7 @@ export default function Navbar() {
             </div>
 
             <div style={{ marginTop: '14px', maxHeight: '350px', overflowY: 'auto' }}>
-              {searchResults.problems.length > 0 ? (
+              {searchResults.problems?.length > 0 ? (
                 <div>
                   <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px' }}>PROBLEMS & CONCEPTS</div>
                   {searchResults.problems.map(p => (

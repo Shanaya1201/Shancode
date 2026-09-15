@@ -50,20 +50,23 @@ CREATE POLICY "Public Read Problems" ON problems FOR SELECT USING (true);
 CREATE POLICY "Public Read Sample Test Cases" ON test_cases FOR SELECT USING (is_sample = 1);
 CREATE POLICY "Public Read Contests" ON contests FOR SELECT USING (true);
 CREATE POLICY "Public Read Contest Problems" ON contest_problems FOR SELECT USING (true);
+CREATE POLICY "Public Read Contest Participants" ON contest_participants FOR SELECT USING (true);
 CREATE POLICY "Public Read Achievements" ON achievements FOR SELECT USING (true);
 CREATE POLICY "Public Read Profiles" ON profiles FOR SELECT USING (true);
 CREATE POLICY "Public Read Discussions" ON discussions FOR SELECT USING (true);
 CREATE POLICY "Public Read Discussion Comments" ON discussion_comments FOR SELECT USING (true);
 
 -- ==============================================================================
--- USER-SPECIFIC POLICIES (Owner Isolation)
+-- USER-SPECIFIC POLICIES (Owner Isolation with Strict WITH CHECK Clauses)
 -- ==============================================================================
 
 -- Concept Progress
 CREATE POLICY "Users Read Own Concept Progress" ON concept_progress 
   FOR SELECT USING (auth.uid()::text = user_id::text);
-CREATE POLICY "Users Insert/Update Own Concept Progress" ON concept_progress 
-  FOR ALL USING (auth.uid()::text = user_id::text);
+CREATE POLICY "Users Insert Own Concept Progress" ON concept_progress 
+  FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
+CREATE POLICY "Users Update Own Concept Progress" ON concept_progress 
+  FOR UPDATE USING (auth.uid()::text = user_id::text) WITH CHECK (auth.uid()::text = user_id::text);
 
 -- Submissions
 CREATE POLICY "Users Read Own Submissions" ON submissions 
@@ -71,35 +74,74 @@ CREATE POLICY "Users Read Own Submissions" ON submissions
 CREATE POLICY "Users Insert Own Submissions" ON submissions 
   FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
 
+-- Notifications
+CREATE POLICY "Users Read Own Notifications" ON notifications 
+  FOR SELECT USING (auth.uid()::text = user_id::text);
+CREATE POLICY "Users Insert Own Notifications" ON notifications 
+  FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
+CREATE POLICY "Users Update Own Notifications" ON notifications 
+  FOR UPDATE USING (auth.uid()::text = user_id::text) WITH CHECK (auth.uid()::text = user_id::text);
+
 -- Profiles
+CREATE POLICY "Users Insert Own Profile" ON profiles 
+  FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
 CREATE POLICY "Users Update Own Profile" ON profiles 
-  FOR UPDATE USING (auth.uid()::text = user_id::text);
+  FOR UPDATE USING (auth.uid()::text = user_id::text) WITH CHECK (auth.uid()::text = user_id::text);
+
+-- User Pattern Mastery
+CREATE POLICY "Users Read Own Pattern Mastery" ON user_pattern_mastery 
+  FOR SELECT USING (auth.uid()::text = user_id::text);
+CREATE POLICY "Users Insert Own Pattern Mastery" ON user_pattern_mastery 
+  FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
+CREATE POLICY "Users Update Own Pattern Mastery" ON user_pattern_mastery 
+  FOR UPDATE USING (auth.uid()::text = user_id::text) WITH CHECK (auth.uid()::text = user_id::text);
+
+-- Hint Usages
+CREATE POLICY "Users Read Own Hint Usages" ON hint_usages 
+  FOR SELECT USING (auth.uid()::text = user_id::text);
+CREATE POLICY "Users Insert Own Hint Usages" ON hint_usages 
+  FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
 
 -- User Skills & Progress
 CREATE POLICY "Users Read Own Skills" ON user_skills 
   FOR SELECT USING (auth.uid()::text = user_id::text);
+CREATE POLICY "Users Insert Own Skills" ON user_skills 
+  FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
+CREATE POLICY "Users Update Own Skills" ON user_skills 
+  FOR UPDATE USING (auth.uid()::text = user_id::text) WITH CHECK (auth.uid()::text = user_id::text);
 
+-- Daily Goals
 CREATE POLICY "Users Read Own Daily Goals" ON daily_goals 
   FOR SELECT USING (auth.uid()::text = user_id::text);
+CREATE POLICY "Users Insert Own Daily Goals" ON daily_goals 
+  FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
+CREATE POLICY "Users Update Own Daily Goals" ON daily_goals 
+  FOR UPDATE USING (auth.uid()::text = user_id::text) WITH CHECK (auth.uid()::text = user_id::text);
 
+-- XP Transactions
 CREATE POLICY "Users Read Own XP Transactions" ON xp_transactions 
   FOR SELECT USING (auth.uid()::text = user_id::text);
 
+-- User Achievements
 CREATE POLICY "Users Read Own Achievements" ON user_achievements 
   FOR SELECT USING (auth.uid()::text = user_id::text);
 
--- Notifications
-CREATE POLICY "Users Read/Update Own Notifications" ON notifications 
-  FOR ALL USING (auth.uid()::text = user_id::text);
+-- Contest Participation Registration
+CREATE POLICY "Users Register Contest" ON contest_participants 
+  FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
 
--- Discussions & Comments creation
+-- Discussions & Comments creation and updates
 CREATE POLICY "Authenticated Users Create Discussions" ON discussions 
   FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
+CREATE POLICY "Users Update Own Discussions" ON discussions 
+  FOR UPDATE USING (auth.uid()::text = user_id::text) WITH CHECK (auth.uid()::text = user_id::text);
 
 CREATE POLICY "Authenticated Users Create Comments" ON discussion_comments 
   FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
+CREATE POLICY "Users Update Own Comments" ON discussion_comments 
+  FOR UPDATE USING (auth.uid()::text = user_id::text) WITH CHECK (auth.uid()::text = user_id::text);
 
 -- ==============================================================================
--- SERVICE ROLE / BACKEND BYPASS POLICY
+-- SERVICE ROLE / BACKEND BYPASS NOTE
 -- (The Supabase Service Role Key bypasses RLS automatically by design in PostgreSQL)
 -- ==============================================================================
