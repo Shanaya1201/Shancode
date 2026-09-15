@@ -2,19 +2,41 @@ import fs from 'fs';
 import path from 'path';
 import initSqlJs from 'sql.js';
 import pg from 'pg';
+import { createClient } from '@supabase/supabase-js';
 
-const isProduction = process.env.NODE_ENV === 'production' && process.env.DATABASE_URL;
+const isProduction = process.env.NODE_ENV === 'production';
+const DB_URL = process.env.SUPABASE_DB_URL || process.env.DATABASE_URL;
 const DB_DIR = path.resolve(process.cwd(), 'data');
 const DB_FILE = path.join(DB_DIR, 'shancode.db');
 
 let sqlDb = null;
 let pgPool = null;
+let supabaseClient = null;
+
+// Initialize Supabase Admin Client for privileged operations
+export function getSupabase() {
+  if (supabaseClient) return supabaseClient;
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+
+  if (supabaseUrl && serviceRoleKey && !supabaseUrl.includes('your-project-id')) {
+    supabaseClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+    return supabaseClient;
+  }
+  return null;
+}
 
 export async function getDb() {
-  if (isProduction) {
+  // If Supabase PostgreSQL URL is provided, connect via connection pool
+  if (DB_URL && !DB_URL.includes('your-project')) {
     if (!pgPool) {
       pgPool = new pg.Pool({
-        connectionString: process.env.DATABASE_URL,
+        connectionString: DB_URL,
         ssl: process.env.PG_SSL === 'false' ? false : { rejectUnauthorized: false },
         max: 20,
         idleTimeoutMillis: 30000,
@@ -24,6 +46,7 @@ export async function getDb() {
     return { type: 'pg', pool: pgPool };
   }
 
+  // Graceful Local SQLite fallback for offline development
   if (sqlDb) return { type: 'sqlite', db: sqlDb, save: saveSqlite };
 
   if (!fs.existsSync(DB_DIR)) {
@@ -38,7 +61,6 @@ export async function getDb() {
     sqlDb = new SQL.Database();
   }
 
-  // Enforce foreign key constraints in SQLite
   try {
     sqlDb.exec("PRAGMA foreign_keys = ON;");
   } catch (e) {
@@ -65,7 +87,7 @@ function toPgSql(sql) {
   return sql.replace(/\?/g, () => `$${pIdx++}`);
 }
 
-// Unified query helper for SQLite & PostgreSQL
+// Unified query helper for Supabase PostgreSQL & SQLite
 export async function query(sql, params = []) {
   const dbObj = await getDb();
   if (dbObj.type === 'pg') {
@@ -88,7 +110,6 @@ export async function run(sql, params = []) {
   const dbObj = await getDb();
   if (dbObj.type === 'pg') {
     let pgSql = toPgSql(sql);
-    // If INSERT without RETURNING id, append RETURNING id
     if (/^\s*INSERT\s+INTO/i.test(pgSql) && !/RETURNING/i.test(pgSql)) {
       pgSql += ' RETURNING id';
     }
@@ -100,7 +121,6 @@ export async function run(sql, params = []) {
   } else {
     dbObj.db.run(sql, params);
     saveSqlite();
-    // Fetch last inserted ID
     const res = dbObj.db.exec("SELECT last_insert_rowid() as id;");
     const lastId = res[0]?.values[0]?.[0] || 0;
     return { changes: 1, lastInsertRowid: lastId };
