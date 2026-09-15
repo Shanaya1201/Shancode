@@ -15,7 +15,10 @@ export async function getDb() {
     if (!pgPool) {
       pgPool = new pg.Pool({
         connectionString: process.env.DATABASE_URL,
-        ssl: { rejectUnauthorized: false }
+        ssl: process.env.PG_SSL === 'false' ? false : { rejectUnauthorized: false },
+        max: 20,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 5000
       });
     }
     return { type: 'pg', pool: pgPool };
@@ -35,6 +38,13 @@ export async function getDb() {
     sqlDb = new SQL.Database();
   }
 
+  // Enforce foreign key constraints in SQLite
+  try {
+    sqlDb.exec("PRAGMA foreign_keys = ON;");
+  } catch (e) {
+    console.warn("Could not enable PRAGMA foreign_keys:", e.message);
+  }
+
   return { type: 'sqlite', db: sqlDb, save: saveSqlite };
 }
 
@@ -49,16 +59,17 @@ export function saveSqlite() {
   }
 }
 
+// Convert SQLite '?' placeholders to PostgreSQL '$1', '$2', etc.
+function toPgSql(sql) {
+  let pIdx = 1;
+  return sql.replace(/\?/g, () => `$${pIdx++}`);
+}
+
 // Unified query helper for SQLite & PostgreSQL
 export async function query(sql, params = []) {
   const dbObj = await getDb();
   if (dbObj.type === 'pg') {
-    // PostgreSQL uses $1, $2 instead of ?
-    let pgSql = sql;
-    let pIdx = 1;
-    while (pgSql.includes('?')) {
-      pgSql = pgSql.replace('?', `$${pIdx++}`);
-    }
+    const pgSql = toPgSql(sql);
     const res = await dbObj.pool.query(pgSql, params);
     return res.rows;
   } else {
@@ -76,13 +87,16 @@ export async function query(sql, params = []) {
 export async function run(sql, params = []) {
   const dbObj = await getDb();
   if (dbObj.type === 'pg') {
-    let pgSql = sql;
-    let pIdx = 1;
-    while (pgSql.includes('?')) {
-      pgSql = pgSql.replace('?', `$${pIdx++}`);
+    let pgSql = toPgSql(sql);
+    // If INSERT without RETURNING id, append RETURNING id
+    if (/^\s*INSERT\s+INTO/i.test(pgSql) && !/RETURNING/i.test(pgSql)) {
+      pgSql += ' RETURNING id';
     }
     const res = await dbObj.pool.query(pgSql, params);
-    return { changes: res.rowCount, lastInsertRowid: res.rows[0]?.id || 0 };
+    return { 
+      changes: res.rowCount, 
+      lastInsertRowid: res.rows[0]?.id || 0 
+    };
   } else {
     dbObj.db.run(sql, params);
     saveSqlite();
@@ -100,5 +114,45 @@ export async function exec(sql) {
   } else {
     dbObj.db.exec(sql);
     saveSqlite();
+  }
+}
+
+export async function withTransaction(callback) {
+  const dbObj = await getDb();
+  if (dbObj.type === 'pg') {
+    const client = await dbObj.pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await callback({
+        query: (sql, params) => client.query(toPgSql(sql), params).then(r => r.rows),
+        run: async (sql, params) => {
+          let pgSql = toPgSql(sql);
+          if (/^\s*INSERT\s+INTO/i.test(pgSql) && !/RETURNING/i.test(pgSql)) pgSql += ' RETURNING id';
+          const r = await client.query(pgSql, params);
+          return { changes: r.rowCount, lastInsertRowid: r.rows[0]?.id || 0 };
+        }
+      });
+      await client.query('COMMIT');
+      return result;
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  } else {
+    try {
+      dbObj.db.exec('BEGIN TRANSACTION;');
+      const result = await callback({
+        query: (sql, params) => query(sql, params),
+        run: (sql, params) => run(sql, params)
+      });
+      dbObj.db.exec('COMMIT;');
+      saveSqlite();
+      return result;
+    } catch (err) {
+      try { dbObj.db.exec('ROLLBACK;'); } catch (e) {}
+      throw err;
+    }
   }
 }

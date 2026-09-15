@@ -2,19 +2,34 @@ import { exec } from '../config/db.js';
 
 export async function initSchema() {
   const schemaSql = `
+    -- Users table
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
       email TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
-      role TEXT DEFAULT 'student',
+      role TEXT DEFAULT 'student', -- 'student', 'moderator', 'admin'
       rating INTEGER DEFAULT 1200,
       xp INTEGER DEFAULT 0,
       streak INTEGER DEFAULT 0,
       last_active_date TEXT,
+      failed_login_attempts INTEGER DEFAULT 0,
+      lockout_until DATETIME,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    -- Refresh tokens for JWT rotation and session invalidation
+    CREATE TABLE IF NOT EXISTS refresh_tokens (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      token_hash TEXT UNIQUE NOT NULL,
+      expires_at DATETIME NOT NULL,
+      revoked INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    -- User profiles
     CREATE TABLE IF NOT EXISTS profiles (
       user_id INTEGER PRIMARY KEY,
       avatar TEXT DEFAULT 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
@@ -26,6 +41,7 @@ export async function initSchema() {
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
+    -- Curriculum sections
     CREATE TABLE IF NOT EXISTS sections (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
@@ -35,6 +51,7 @@ export async function initSchema() {
       order_index INTEGER NOT NULL
     );
 
+    -- Concepts / Lessons
     CREATE TABLE IF NOT EXISTS concepts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       section_id INTEGER NOT NULL,
@@ -47,11 +64,12 @@ export async function initSchema() {
       code_samples_json TEXT, -- { cpp, java, python, js }
       common_mistakes_json TEXT, -- array of strings
       video_url TEXT,
-      video_source TEXT DEFAULT 'youtube', -- 'youtube', 'vimeo', 'self-hosted'
+      video_source TEXT DEFAULT 'youtube',
       order_index INTEGER NOT NULL,
       FOREIGN KEY (section_id) REFERENCES sections(id) ON DELETE CASCADE
     );
 
+    -- Concept prerequisites / dependencies
     CREATE TABLE IF NOT EXISTS concept_dependencies (
       concept_id INTEGER NOT NULL,
       prerequisite_id INTEGER NOT NULL,
@@ -60,6 +78,7 @@ export async function initSchema() {
       FOREIGN KEY (prerequisite_id) REFERENCES concepts(id) ON DELETE CASCADE
     );
 
+    -- Concept Quizzes
     CREATE TABLE IF NOT EXISTS quizzes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       concept_id INTEGER UNIQUE NOT NULL,
@@ -68,6 +87,7 @@ export async function initSchema() {
       FOREIGN KEY (concept_id) REFERENCES concepts(id) ON DELETE CASCADE
     );
 
+    -- Quiz Questions
     CREATE TABLE IF NOT EXISTS quiz_questions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       quiz_id INTEGER NOT NULL,
@@ -78,6 +98,7 @@ export async function initSchema() {
       FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE
     );
 
+    -- Concept Learning Progress
     CREATE TABLE IF NOT EXISTS concept_progress (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
@@ -90,13 +111,14 @@ export async function initSchema() {
       notes TEXT DEFAULT '',
       last_reviewed_at DATETIME,
       next_review_at DATETIME,
-      repetition_stage INTEGER DEFAULT 0, -- 0 (new), 1 (1d), 2 (3d), 3 (7d), 4 (14d), 5 (30d)
+      repetition_stage INTEGER DEFAULT 0, -- 0 to 5
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(user_id, concept_id),
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
       FOREIGN KEY (concept_id) REFERENCES concepts(id) ON DELETE CASCADE
     );
 
+    -- Algorithmic Patterns
     CREATE TABLE IF NOT EXISTS patterns (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -106,6 +128,7 @@ export async function initSchema() {
       icon TEXT
     );
 
+    -- Pattern Levels
     CREATE TABLE IF NOT EXISTS pattern_levels (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       pattern_id INTEGER NOT NULL,
@@ -116,6 +139,7 @@ export async function initSchema() {
       FOREIGN KEY (pattern_id) REFERENCES patterns(id) ON DELETE CASCADE
     );
 
+    -- User Pattern Mastery
     CREATE TABLE IF NOT EXISTS user_pattern_mastery (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
@@ -129,6 +153,7 @@ export async function initSchema() {
       FOREIGN KEY (pattern_id) REFERENCES patterns(id) ON DELETE CASCADE
     );
 
+    -- Problems
     CREATE TABLE IF NOT EXISTS problems (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
@@ -149,15 +174,17 @@ export async function initSchema() {
       FOREIGN KEY (concept_id) REFERENCES concepts(id) ON DELETE SET NULL
     );
 
+    -- Problem Test Cases
     CREATE TABLE IF NOT EXISTS test_cases (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       problem_id INTEGER NOT NULL,
       input_data TEXT NOT NULL,
       expected_output TEXT NOT NULL,
-      is_sample INTEGER DEFAULT 0, -- 1 if visible sample, 0 if hidden test
+      is_sample INTEGER DEFAULT 0, -- 1 if sample, 0 if hidden
       FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
     );
 
+    -- Code Submissions
     CREATE TABLE IF NOT EXISTS submissions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
@@ -175,6 +202,7 @@ export async function initSchema() {
       FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
     );
 
+    -- Tiered Progressive Hints
     CREATE TABLE IF NOT EXISTS hints (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       problem_id INTEGER NOT NULL,
@@ -183,6 +211,7 @@ export async function initSchema() {
       FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
     );
 
+    -- Hint Usages Tracking
     CREATE TABLE IF NOT EXISTS hint_usages (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
@@ -193,6 +222,7 @@ export async function initSchema() {
       FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
     );
 
+    -- User Skills Breakdown
     CREATE TABLE IF NOT EXISTS user_skills (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
@@ -207,6 +237,7 @@ export async function initSchema() {
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
+    -- Contests
     CREATE TABLE IF NOT EXISTS contests (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
@@ -216,9 +247,10 @@ export async function initSchema() {
       end_time DATETIME NOT NULL,
       duration_minutes INTEGER DEFAULT 90,
       is_rated INTEGER DEFAULT 1,
-      status TEXT DEFAULT 'upcoming' -- 'upcoming', 'active', 'finished'
+      status TEXT DEFAULT 'upcoming'
     );
 
+    -- Contest Problems Association
     CREATE TABLE IF NOT EXISTS contest_problems (
       contest_id INTEGER NOT NULL,
       problem_id INTEGER NOT NULL,
@@ -229,6 +261,7 @@ export async function initSchema() {
       FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
     );
 
+    -- Contest Participants
     CREATE TABLE IF NOT EXISTS contest_participants (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       contest_id INTEGER NOT NULL,
@@ -244,6 +277,7 @@ export async function initSchema() {
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
+    -- Discussions
     CREATE TABLE IF NOT EXISTS discussions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
@@ -257,6 +291,7 @@ export async function initSchema() {
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
+    -- Discussion Comments
     CREATE TABLE IF NOT EXISTS discussion_comments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       discussion_id INTEGER NOT NULL,
@@ -268,18 +303,20 @@ export async function initSchema() {
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
+    -- Notifications
     CREATE TABLE IF NOT EXISTS notifications (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
       title TEXT NOT NULL,
       message TEXT NOT NULL,
-      type TEXT DEFAULT 'system', -- 'streak', 'spaced_revision', 'contest', 'achievement', 'system'
+      type TEXT DEFAULT 'system',
       link TEXT,
       is_read INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
+    -- Gamification: Achievements
     CREATE TABLE IF NOT EXISTS achievements (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       code TEXT UNIQUE NOT NULL,
@@ -289,6 +326,7 @@ export async function initSchema() {
       xp_reward INTEGER DEFAULT 100
     );
 
+    -- Gamification: User Achievements
     CREATE TABLE IF NOT EXISTS user_achievements (
       user_id INTEGER NOT NULL,
       achievement_id INTEGER NOT NULL,
@@ -298,6 +336,18 @@ export async function initSchema() {
       FOREIGN KEY (achievement_id) REFERENCES achievements(id) ON DELETE CASCADE
     );
 
+    -- Gamification: XP Transactions (Ledger)
+    CREATE TABLE IF NOT EXISTS xp_transactions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      amount INTEGER NOT NULL,
+      source TEXT NOT NULL, -- 'problem_solve', 'quiz_pass', 'streak_bonus', 'achievement'
+      reference_id TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    -- Daily Goals
     CREATE TABLE IF NOT EXISTS daily_goals (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
@@ -309,15 +359,32 @@ export async function initSchema() {
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
+    -- Integrity & Audit Logs
     CREATE TABLE IF NOT EXISTS integrity_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
       problem_id INTEGER,
-      event_type TEXT NOT NULL, -- 'paste_abuse', 'tab_switch', 'rapid_solve'
+      event_type TEXT NOT NULL, -- 'paste_abuse', 'tab_switch', 'rapid_solve', 'login_lockout'
       details TEXT,
       logged_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
+
+    -- Indexes for optimal performance
+    CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+    CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+    CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user ON refresh_tokens(user_id);
+    CREATE INDEX IF NOT EXISTS idx_problems_slug ON problems(slug);
+    CREATE INDEX IF NOT EXISTS idx_problems_pattern ON problems(pattern_id);
+    CREATE INDEX IF NOT EXISTS idx_problems_topic ON problems(topic);
+    CREATE INDEX IF NOT EXISTS idx_concepts_slug ON concepts(slug);
+    CREATE INDEX IF NOT EXISTS idx_concepts_section ON concepts(section_id);
+    CREATE INDEX IF NOT EXISTS idx_concept_progress_user ON concept_progress(user_id);
+    CREATE INDEX IF NOT EXISTS idx_submissions_user ON submissions(user_id);
+    CREATE INDEX IF NOT EXISTS idx_submissions_problem ON submissions(problem_id);
+    CREATE INDEX IF NOT EXISTS idx_user_skills_user ON user_skills(user_id);
+    CREATE INDEX IF NOT EXISTS idx_discussions_problem ON discussions(problem_id);
+    CREATE INDEX IF NOT EXISTS idx_xp_transactions_user ON xp_transactions(user_id);
   `;
 
   await exec(schemaSql);
