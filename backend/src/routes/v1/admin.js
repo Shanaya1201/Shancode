@@ -20,7 +20,7 @@ router.get('/metrics', authMiddleware, requireAdmin, async (req, res) => {
       FROM concepts c
       JOIN sections s ON c.section_id = s.id
       LEFT JOIN concept_progress cp ON c.id = cp.concept_id
-      GROUP BY c.id
+      GROUP BY c.id, c.title, c.slug, s.title
       ORDER BY avg_progress ASC LIMIT 5
     `);
 
@@ -30,7 +30,7 @@ router.get('/metrics', authMiddleware, requireAdmin, async (req, res) => {
              SUM(CASE WHEN s.verdict = 'Accepted' THEN 1 ELSE 0 END) as accepted_attempts
       FROM problems p
       LEFT JOIN submissions s ON p.id = s.problem_id
-      GROUP BY p.id
+      GROUP BY p.id, p.title, p.difficulty, p.topic
       ORDER BY total_attempts DESC LIMIT 5
     `);
 

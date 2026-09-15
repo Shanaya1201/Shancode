@@ -27,13 +27,13 @@ router.get('/dashboard', optionalAuthMiddleware, async (req, res) => {
       WHERE s.user_id = ? AND s.verdict = 'Accepted'
     `, [userId]);
 
-    const totalProblems = (await query(`SELECT COUNT(*) as cnt FROM problems`))[0].cnt;
+    const totalProblems = Number((await query(`SELECT COUNT(*) as cnt FROM problems`))[0]?.cnt || 0);
     const easySolved = solved.filter(p => p.difficulty === 'Easy').length;
     const medSolved = solved.filter(p => p.difficulty === 'Medium').length;
     const hardSolved = solved.filter(p => p.difficulty === 'Hard').length;
 
     // Concept & Video stats
-    const concepts = await query(`SELECT COUNT(*) as total FROM concepts`);
+    const totalConceptsCount = Number((await query(`SELECT COUNT(*) as total FROM concepts`))[0]?.total || 0);
     const conceptProg = await query(`SELECT completed, video_progress_pct FROM concept_progress WHERE user_id = ?`, [userId]);
     const conceptsCompleted = conceptProg.filter(c => c.completed === 1).length;
     const videosCompleted = conceptProg.filter(c => c.video_progress_pct >= 90).length;
@@ -65,7 +65,7 @@ router.get('/dashboard', optionalAuthMiddleware, async (req, res) => {
         easy_solved: easySolved,
         medium_solved: medSolved,
         hard_solved: hardSolved,
-        concepts_total: concepts[0].total,
+        concepts_total: totalConceptsCount,
         concepts_completed: conceptsCompleted,
         videos_completed: videosCompleted,
         first_attempt_accuracy: 74,

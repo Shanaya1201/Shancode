@@ -1,5 +1,5 @@
 import express from 'express';
-import { query, run } from '../../config/db.js';
+import { query, run, safeJsonParse } from '../../config/db.js';
 import { optionalAuthMiddleware, authMiddleware } from '../../config/jwt.js';
 import { rateLimit } from '../../middleware/rateLimit.js';
 
@@ -48,7 +48,7 @@ router.get('/', optionalAuthMiddleware, async (req, res) => {
     const discussions = await query(sql, params);
     let results = discussions.map(d => ({
       ...d,
-      tags: JSON.parse(d.tags_json || '[]')
+      tags: safeJsonParse(d.tags_json, [])
     }));
 
     if (tag) {

@@ -45,13 +45,13 @@ export async function checkAchievements(userId, txClient = null) {
   const userRow = (await q(`SELECT xp, streak FROM users WHERE id = ?`, [userId]))[0];
   if (!userRow) return [];
 
-  const solvedCount = (await q(`
+  const solvedCount = Number((await q(`
     SELECT COUNT(DISTINCT problem_id) as cnt FROM submissions WHERE user_id = ? AND verdict = 'Accepted'
-  `, [userId]))[0].cnt;
+  `, [userId]))[0]?.cnt || 0);
 
-  const conceptCount = (await q(`
+  const conceptCount = Number((await q(`
     SELECT COUNT(*) as cnt FROM concept_progress WHERE user_id = ? AND completed = 1
-  `, [userId]))[0].cnt;
+  `, [userId]))[0]?.cnt || 0);
 
   const allAchievements = await q(`SELECT * FROM achievements`);
   const unlockedRows = await q(`SELECT achievement_id FROM user_achievements WHERE user_id = ?`, [userId]);

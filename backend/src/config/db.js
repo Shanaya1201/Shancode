@@ -216,3 +216,23 @@ export async function withTransaction(callback) {
     }
   }
 }
+
+/**
+ * Safely parse JSON values that may come from either:
+ * - SQLite (raw string representation)
+ * - PostgreSQL / node-pg (already deserialized Object/Array from JSON/JSONB column)
+ * - Null / Undefined / Empty string (returns fallback value)
+ * - Malformed JSON strings (returns fallback value without throwing HTTP 500)
+ */
+export function safeJsonParse(val, fallback = null) {
+  if (val === null || val === undefined) return fallback;
+  if (typeof val === 'object') return val;
+  if (typeof val !== 'string') return fallback;
+  const trimmed = val.trim();
+  if (!trimmed) return fallback;
+  try {
+    return JSON.parse(trimmed);
+  } catch (e) {
+    return fallback;
+  }
+}

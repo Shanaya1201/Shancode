@@ -1,5 +1,5 @@
 import express from 'express';
-import { query, run } from '../../config/db.js';
+import { query, run, safeJsonParse } from '../../config/db.js';
 import { optionalAuthMiddleware, authMiddleware } from '../../config/jwt.js';
 
 const router = express.Router();
@@ -22,7 +22,7 @@ router.get('/meta/filters', async (req, res) => {
       SELECT pt.id, pt.name, pt.slug, COUNT(p.id) as count
       FROM patterns pt
       LEFT JOIN problems p ON p.pattern_id = pt.id
-      GROUP BY pt.id
+      GROUP BY pt.id, pt.name, pt.slug
       ORDER BY pt.id ASC
     `);
 
@@ -94,7 +94,7 @@ router.get('/', optionalAuthMiddleware, async (req, res) => {
     }
 
     let results = problems.map(p => {
-      const companyTags = JSON.parse(p.company_tags_json || '[]');
+      const companyTags = safeJsonParse(p.company_tags_json, []);
       const userStatus = userSubmissions[p.id] || 'unsolved';
       return {
         ...p,
@@ -188,11 +188,11 @@ router.get('/:slugOrId', optionalAuthMiddleware, async (req, res) => {
         topic: problem.topic,
         pattern_id: problem.pattern_id,
         description: problem.description,
-        examples: JSON.parse(problem.examples_json || '[]'),
-        constraints: JSON.parse(problem.constraints_json || '[]'),
-        starter_code: JSON.parse(problem.starter_code_json || '{}'),
+        examples: safeJsonParse(problem.examples_json, []),
+        constraints: safeJsonParse(problem.constraints_json, []),
+        starter_code: safeJsonParse(problem.starter_code_json, {}),
         acceptance_rate: problem.acceptance_rate,
-        company_tags: JSON.parse(problem.company_tags_json || '[]'),
+        company_tags: safeJsonParse(problem.company_tags_json, []),
         sample_tests: sampleTests,
         hints_count: hints.length,
         unlocked_hints: unlockedHints,
@@ -244,7 +244,7 @@ router.get('/:id/solution', authMiddleware, async (req, res) => {
       return res.status(404).json({ success: false, error: 'Problem not found' });
     }
 
-    const sol = JSON.parse(problems[0].solution_json || '{}');
+    const sol = safeJsonParse(problems[0].solution_json, {});
     return res.json({ success: true, solution: sol });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });

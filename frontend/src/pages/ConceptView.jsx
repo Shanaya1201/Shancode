@@ -16,6 +16,7 @@ export default function ConceptView() {
 
   const [concept, setConcept] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [activeTab, setActiveTab] = useState('intuition'); // intuition, visual, code, mistakes, notes
   const [codeLang, setCodeLang] = useState('python');
   
@@ -45,18 +46,24 @@ export default function ConceptView() {
 
   useEffect(() => {
     setLoading(true);
+    setLoadError(null);
     api.getConcept(slug)
       .then(res => {
-        if (res.success) {
+        if (res.success && res.concept) {
           setConcept(res.concept);
           setVideoProgress(res.concept.user_progress?.video_progress_pct || 0);
           setNotes(res.concept.user_progress?.notes || '');
           if (res.concept.user_progress?.quiz_passed) {
             setQuizResult({ passed: true, score_pct: 100 });
           }
+        } else {
+          setLoadError(res.error || 'Concept lesson not found');
         }
       })
-      .catch(console.error)
+      .catch(err => {
+        console.error('Failed to load concept:', err);
+        setLoadError(err.message || 'Error loading concept lesson');
+      })
       .finally(() => setLoading(false));
   }, [slug]);
 
@@ -136,12 +143,27 @@ export default function ConceptView() {
     }
   };
 
-  if (loading || !concept) {
+  if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
         <div style={{ color: 'var(--accent-primary)', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <BrainCircuit className="pulse-glow" size={32} /> Loading Concept Lesson...
         </div>
+      </div>
+    );
+  }
+
+  if (loadError || !concept) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '80vh', gap: '16px', textAlign: 'center', padding: '24px' }}>
+        <AlertTriangle size={48} color="#ef4444" />
+        <h2 style={{ color: '#fff', fontSize: '1.8rem', fontWeight: 700 }}>Lesson Unavailable</h2>
+        <p style={{ color: 'var(--text-secondary)', maxWidth: '500px' }}>
+          {loadError || 'The requested concept lesson could not be loaded.'}
+        </p>
+        <Link to="/learn" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none', marginTop: '8px' }}>
+          <ArrowRight size={18} /> Back to DSA Roadmap
+        </Link>
       </div>
     );
   }

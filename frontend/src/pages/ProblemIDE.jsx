@@ -16,6 +16,7 @@ export default function ProblemIDE() {
 
   const [problem, setProblem] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [leftTab, setLeftTab] = useState('description'); // description, hints, solution, tutor, submissions
   
   // Code Editor state
@@ -59,18 +60,24 @@ export default function ProblemIDE() {
 
   useEffect(() => {
     setLoading(true);
+    setLoadError(null);
     api.getProblem(slug)
       .then(res => {
-        if (res.success) {
+        if (res.success && res.problem) {
           setProblem(res.problem);
           const defaultCode = res.problem.starter_code?.[language] || '# Write your solution here\n';
           setCode(defaultCode);
           if (res.problem.sample_tests?.length > 0) {
             setCustomInput(res.problem.sample_tests[0].input_data);
           }
+        } else {
+          setLoadError(res.error || 'Problem not found');
         }
       })
-      .catch(console.error)
+      .catch(err => {
+        console.error('Failed to load problem:', err);
+        setLoadError(err.message || 'Error loading coding workspace');
+      })
       .finally(() => setLoading(false));
 
     // Fetch submission history
@@ -217,12 +224,27 @@ export default function ProblemIDE() {
     }
   };
 
-  if (loading || !problem) {
+  if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
         <div style={{ color: 'var(--accent-primary)', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
           Loading Coding Workspace...
         </div>
+      </div>
+    );
+  }
+
+  if (loadError || !problem) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '80vh', gap: '16px', textAlign: 'center', padding: '24px' }}>
+        <AlertTriangle size={48} color="#ef4444" />
+        <h2 style={{ color: '#fff', fontSize: '1.8rem', fontWeight: 700 }}>Problem Unavailable</h2>
+        <p style={{ color: 'var(--text-secondary)', maxWidth: '500px' }}>
+          {loadError || 'The requested problem could not be loaded.'}
+        </p>
+        <Link to="/problems" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none', marginTop: '8px' }}>
+          <ChevronRight size={18} /> Back to Problems Catalog
+        </Link>
       </div>
     );
   }

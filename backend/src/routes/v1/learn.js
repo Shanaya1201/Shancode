@@ -1,5 +1,5 @@
 import express from 'express';
-import { query, run, withTransaction } from '../../config/db.js';
+import { query, run, withTransaction, safeJsonParse } from '../../config/db.js';
 import { authMiddleware, optionalAuthMiddleware } from '../../config/jwt.js';
 import { advanceSpacedRepetition, getDueSpacedRevisions } from '../../services/analytics.js';
 
@@ -163,7 +163,7 @@ router.get('/concepts/:slugOrId', optionalAuthMiddleware, async (req, res) => {
         questions: questions.map(q => ({
           id: q.id,
           question: q.question,
-          options: JSON.parse(q.options_json || '[]'),
+          options: safeJsonParse(q.options_json, []),
           correct_option_index: q.correct_option_index,
           explanation: q.explanation
         }))
@@ -192,8 +192,8 @@ router.get('/concepts/:slugOrId', optionalAuthMiddleware, async (req, res) => {
       prerequisites: unlockStatus.prerequisites,
       concept: {
         ...concept,
-        code_samples: JSON.parse(concept.code_samples_json || '{}'),
-        common_mistakes: JSON.parse(concept.common_mistakes_json || '[]'),
+        code_samples: safeJsonParse(concept.code_samples_json, {}),
+        common_mistakes: safeJsonParse(concept.common_mistakes_json, []),
         section,
         quiz,
         related_problems: relatedProblems,

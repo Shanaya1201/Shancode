@@ -244,9 +244,25 @@ function spawnWithTimeout(cmd, args, timeoutMs) {
     let stderr = '';
     let isTimeout = false;
 
+    // Strict environment variable whitelist to prevent leaking backend secrets (JWT, DB URLs, API keys)
+    const sanitizedEnv = {
+      PATH: process.env.PATH || '',
+      PATHEXT: process.env.PATHEXT || '',
+      SYSTEMROOT: process.env.SYSTEMROOT || '',
+      TEMP: process.env.TEMP || os.tmpdir(),
+      TMP: process.env.TMP || os.tmpdir(),
+      HOME: process.env.HOME || os.tmpdir(),
+      USERPROFILE: process.env.USERPROFILE || os.tmpdir(),
+      LANG: 'en_US.UTF-8',
+      LC_ALL: 'en_US.UTF-8',
+      NODE_OPTIONS: '--max-old-space-size=128',
+      PYTHONUNBUFFERED: '1',
+      PYTHONDONTWRITEBYTECODE: '1'
+    };
+
     const child = spawn(cmd, args, {
       windowsHide: true,
-      env: { ...process.env, NODE_OPTIONS: '--max-old-space-size=128' }
+      env: sanitizedEnv
     });
 
     const timer = setTimeout(() => {

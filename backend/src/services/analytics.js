@@ -1,4 +1,4 @@
-import { query, run } from '../config/db.js';
+import { query, run, safeJsonParse } from '../config/db.js';
 
 /**
  * Calculates user's skill scores across topics and updates user_skills table
@@ -214,12 +214,8 @@ export async function calculateInterviewReadiness(userId, targetCompany = 'Googl
   `);
 
   const relevantProblems = companyProblems.filter(p => {
-    try {
-      const tags = JSON.parse(p.company_tags_json || '[]');
-      return tags.includes(targetCompany);
-    } catch (e) {
-      return false;
-    }
+    const tags = safeJsonParse(p.company_tags_json, []);
+    return Array.isArray(tags) && tags.includes(targetCompany);
   });
 
   const solvedCompanyIds = new Set(solvedProblems.map(p => p.id));
