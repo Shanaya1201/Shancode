@@ -4,6 +4,39 @@ import { optionalAuthMiddleware, authMiddleware } from '../../config/jwt.js';
 
 const router = express.Router();
 
+// Get topic and pattern metadata counts for quick filtering
+router.get('/meta/filters', async (req, res) => {
+  try {
+    const topics = await query(`
+      SELECT topic, COUNT(*) as count 
+      FROM problems 
+      GROUP BY topic 
+      ORDER BY count DESC
+    `);
+    const difficulties = await query(`
+      SELECT difficulty, COUNT(*) as count 
+      FROM problems 
+      GROUP BY difficulty
+    `);
+    const patterns = await query(`
+      SELECT pt.id, pt.name, pt.slug, COUNT(p.id) as count
+      FROM patterns pt
+      LEFT JOIN problems p ON p.pattern_id = pt.id
+      GROUP BY pt.id
+      ORDER BY pt.id ASC
+    `);
+
+    return res.json({
+      success: true,
+      topics,
+      difficulties,
+      patterns
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Get problem list with multi-filters
 router.get('/', optionalAuthMiddleware, async (req, res) => {
   try {
