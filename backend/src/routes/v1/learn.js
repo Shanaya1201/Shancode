@@ -1,11 +1,65 @@
 import express from 'express';
-import { query, run } from '../../config/db.js';
+import { query, run, withTransaction } from '../../config/db.js';
 import { authMiddleware, optionalAuthMiddleware } from '../../config/jwt.js';
 import { advanceSpacedRepetition, getDueSpacedRevisions } from '../../services/analytics.js';
 
 const router = express.Router();
 
-// Get full DSA Roadmap with user progress status (Not Started, In Progress, Completed)
+/**
+ * Check if a concept is unlocked for a user based on sequential order and prerequisite graph
+ */
+async function checkConceptUnlocked(userId, conceptId) {
+  if (!userId) {
+    // Guest users can preview concept 1
+    return { unlocked: conceptId === 1, prerequisites: [] };
+  }
+
+  // Check explicit prerequisite dependencies
+  const prereqs = await query(`
+    SELECT cd.prerequisite_id, c.title, c.slug, COALESCE(cp.completed, 0) as completed
+    FROM concept_dependencies cd
+    JOIN concepts c ON cd.prerequisite_id = c.id
+    LEFT JOIN concept_progress cp ON cp.concept_id = cd.prerequisite_id AND cp.user_id = ?
+    WHERE cd.concept_id = ?
+  `, [userId, conceptId]);
+
+  if (prereqs && prereqs.length > 0) {
+    const uncompleted = prereqs.filter(p => !p.completed);
+    return {
+      unlocked: uncompleted.length === 0,
+      prerequisites: prereqs
+    };
+  }
+
+  // If no explicit graph prereqs, check sequential previous concept in section
+  const currentConcept = (await query(`SELECT id, section_id, order_index FROM concepts WHERE id = ?`, [conceptId]))[0];
+  if (!currentConcept) return { unlocked: false, prerequisites: [] };
+
+  if (currentConcept.section_id === 1 && currentConcept.order_index === 1) {
+    return { unlocked: true, prerequisites: [] };
+  }
+
+  // Check previous concept in same section or previous section completion
+  if (currentConcept.order_index > 1) {
+    const prevConcept = (await query(`
+      SELECT c.id, c.title, c.slug, COALESCE(cp.completed, 0) as completed
+      FROM concepts c
+      LEFT JOIN concept_progress cp ON cp.concept_id = c.id AND cp.user_id = ?
+      WHERE c.section_id = ? AND c.order_index = ?
+    `, [userId, currentConcept.section_id, currentConcept.order_index - 1]))[0];
+
+    if (prevConcept) {
+      return {
+        unlocked: Boolean(prevConcept.completed),
+        prerequisites: [prevConcept]
+      };
+    }
+  }
+
+  return { unlocked: true, prerequisites: [] };
+}
+
+// Get full DSA Roadmap with user progress and unlock status
 router.get('/roadmap', optionalAuthMiddleware, async (req, res) => {
   try {
     const userId = req.user?.id || 0;
@@ -20,17 +74,27 @@ router.get('/roadmap', optionalAuthMiddleware, async (req, res) => {
       });
     }
 
+    let previousCompleted = true; // Section 1 Concept 1 is always unlocked
+
     const roadmapData = sections.map(sec => {
       const secConcepts = concepts
         .filter(c => c.section_id === sec.id)
         .map(c => {
           const prog = progressMap[c.id];
-          let status = 'not_started';
-          if (prog?.completed) {
-            status = 'completed';
-          } else if (prog?.video_progress_pct > 0 || prog?.notes) {
-            status = 'in_progress';
+          let status = 'locked';
+          const isCompleted = Boolean(prog?.completed);
+
+          if (previousCompleted || isCompleted) {
+            if (isCompleted) {
+              status = 'completed';
+            } else if (prog?.video_progress_pct > 0 || prog?.notes) {
+              status = 'in_progress';
+            } else {
+              status = 'available';
+            }
           }
+
+          previousCompleted = isCompleted;
 
           return {
             id: c.id,
@@ -39,9 +103,10 @@ router.get('/roadmap', optionalAuthMiddleware, async (req, res) => {
             summary: c.summary,
             order_index: c.order_index,
             status,
+            unlocked: status !== 'locked',
             video_progress_pct: prog?.video_progress_pct || 0,
-            quiz_passed: prog?.quiz_passed ? true : false,
-            completed: prog?.completed ? true : false
+            quiz_passed: Boolean(prog?.quiz_passed),
+            completed: isCompleted
           };
         });
 
@@ -63,7 +128,7 @@ router.get('/roadmap', optionalAuthMiddleware, async (req, res) => {
   }
 });
 
-// Get concept details by slug or ID with intuition, visual, code samples, quiz, and related problems
+// Get concept details by slug or ID
 router.get('/concepts/:slugOrId', optionalAuthMiddleware, async (req, res) => {
   try {
     const param = req.params.slugOrId;
@@ -82,6 +147,9 @@ router.get('/concepts/:slugOrId', optionalAuthMiddleware, async (req, res) => {
 
     const concept = concepts[0];
     const section = (await query(`SELECT * FROM sections WHERE id = ?`, [concept.section_id]))[0];
+
+    // Check unlocking status
+    const unlockStatus = await checkConceptUnlocked(userId, concept.id);
 
     // Fetch quiz & questions
     const quizRow = (await query(`SELECT * FROM quizzes WHERE concept_id = ?`, [concept.id]))[0];
@@ -120,6 +188,8 @@ router.get('/concepts/:slugOrId', optionalAuthMiddleware, async (req, res) => {
 
     return res.json({
       success: true,
+      unlocked: unlockStatus.unlocked,
+      prerequisites: unlockStatus.prerequisites,
       concept: {
         ...concept,
         code_samples: JSON.parse(concept.code_samples_json || '{}'),
@@ -198,20 +268,26 @@ router.post('/concepts/:id/quiz-submit', authMiddleware, async (req, res) => {
     const passed = scorePct >= quizRow.passing_score;
 
     if (passed) {
-      await run(`
-        INSERT INTO concept_progress (user_id, concept_id, quiz_passed, completed, updated_at)
-        VALUES (?, ?, 1, 1, CURRENT_TIMESTAMP)
-        ON CONFLICT(user_id, concept_id) DO UPDATE SET
-          quiz_passed = 1,
-          completed = 1,
-          updated_at = CURRENT_TIMESTAMP
-      `, [userId, conceptId]);
+      await withTransaction(async (tx) => {
+        await tx.run(`
+          INSERT INTO concept_progress (user_id, concept_id, quiz_passed, completed, updated_at)
+          VALUES (?, ?, 1, 1, CURRENT_TIMESTAMP)
+          ON CONFLICT(user_id, concept_id) DO UPDATE SET
+            quiz_passed = 1,
+            completed = 1,
+            updated_at = CURRENT_TIMESTAMP
+        `, [userId, conceptId]);
+
+        // Award XP and log transaction
+        await tx.run(`UPDATE users SET xp = xp + 50 WHERE id = ?`, [userId]);
+        await tx.run(`
+          INSERT INTO xp_transactions (user_id, amount, source, reference_id)
+          VALUES (?, 50, 'quiz_pass', ?)
+        `, [userId, `quiz_${conceptId}`]);
+      });
 
       // Trigger spaced repetition schedule
       await advanceSpacedRepetition(userId, conceptId, true);
-
-      // Award XP
-      await run(`UPDATE users SET xp = xp + 50 WHERE id = ?`, [userId]);
     }
 
     return res.json({
