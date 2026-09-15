@@ -20,8 +20,8 @@ export function AuthProvider({ children }) {
         })
         .finally(() => setLoading(false));
     } else {
-      // Default to demo user if no token for instant exploring
-      loginDemo('yashu');
+      // Default to demo learner Sushmita
+      loginDemo('sushmita');
     }
   }, []);
 
@@ -34,10 +34,10 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const loginDemo = async (role = 'yashu') => {
+  const loginDemo = async (role = 'sushmita') => {
     setLoading(true);
     try {
-      const username = role === 'admin' ? 'admin' : 'yashu';
+      const username = role === 'admin' ? 'admin' : 'sushmita';
       const res = await api.login(username, 'shancode123');
       if (res.success) {
         localStorage.setItem('shancode_token', res.token);

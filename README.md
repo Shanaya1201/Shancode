@@ -125,7 +125,7 @@ docker-compose up --build
 ## 🧪 Demo Credentials
 
 Shancode includes built-in quick demo accounts:
-- **Learner Account**: `yashu` / `shancode123`
+- **Learner Account**: `sushmita` / `shancode123`
 - **Admin Account**: `admin` / `shancode123`
 
 ---

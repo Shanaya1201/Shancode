@@ -125,7 +125,7 @@ export default function Contests() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {[
               { rank: 1, name: 'alex_code', score: 300, penalty: 24, delta: '+45', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=alex' },
-              { rank: 2, name: 'yashu', score: 200, penalty: 38, delta: '+28', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=128&q=80' },
+              { rank: 2, name: 'sushmita', score: 200, penalty: 38, delta: '+28', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=128&q=80' },
               { rank: 3, name: 'sarah_dsa', score: 200, penalty: 44, delta: '+18', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=sarah' },
               { rank: 4, name: 'dev_master', score: 100, penalty: 12, delta: '+5', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=dev' },
               { rank: 5, name: 'coder_99', score: 100, penalty: 29, delta: '-12', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=99' }
@@ -137,9 +137,9 @@ export default function Contests() {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   padding: '10px 12px',
-                  backgroundColor: p.name === 'yashu' ? 'rgba(99, 102, 241, 0.12)' : 'var(--bg-primary)',
+                  backgroundColor: p.name === 'sushmita' ? 'rgba(99, 102, 241, 0.12)' : 'var(--bg-primary)',
                   borderRadius: '8px',
-                  border: p.name === 'yashu' ? '1px solid var(--accent-primary)' : '1px solid var(--border-glass)',
+                  border: p.name === 'sushmita' ? '1px solid var(--accent-primary)' : '1px solid var(--border-glass)',
                   fontSize: '0.85rem'
                 }}
               >

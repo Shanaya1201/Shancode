@@ -55,7 +55,7 @@ export default function Profile() {
 
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
-              <h1 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fff' }}>{user?.username || 'Yashu'}</h1>
+              <h1 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fff' }}>{user?.username || 'Sushmita'}</h1>
               <span className="badge badge-concept">{user?.role?.toUpperCase() || 'STUDENT'}</span>
             </div>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '12px' }}>{user?.bio}</p>

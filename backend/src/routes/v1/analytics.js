@@ -17,7 +17,7 @@ router.get('/dashboard', optionalAuthMiddleware, async (req, res) => {
       LEFT JOIN profiles p ON u.id = p.user_id
       WHERE u.id = ?
     `, [userId]);
-    const user = users[0] || { id: 1, username: 'yashu', xp: 1250, streak: 12, rating: 1540 };
+    const user = users[0] || { id: 1, username: 'sushmita', xp: 1250, streak: 12, rating: 1540 };
 
     // Problems breakdown
     const solved = await query(`

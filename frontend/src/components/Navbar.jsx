@@ -310,7 +310,7 @@ export default function Navbar() {
                       <User size={15} /> My Profile
                     </Link>
                     <button
-                      onClick={() => { loginDemo(user.role === 'admin' ? 'yashu' : 'admin'); setUserMenuOpen(false); }}
+                      onClick={() => { loginDemo(user.role === 'admin' ? 'sushmita' : 'admin'); setUserMenuOpen(false); }}
                       style={{
                         width: '100%',
                         textAlign: 'left',

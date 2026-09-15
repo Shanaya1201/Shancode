@@ -53,8 +53,8 @@ export default function Home() {
         border: '1px solid var(--border-glass)'
       }}>
         <div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', marginBottom: '6px' }}>
-            Welcome back, {user?.username || 'Yashu'} 👋
+          <h1 style={{ fontSize: '2.1rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', marginBottom: '6px' }}>
+            Welcome back, {user?.username ? (user.username.charAt(0).toUpperCase() + user.username.slice(1)) : 'Sushmita'} 👋
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '1rem' }}>
             Learn the concept. Master the pattern. Solve the problem.

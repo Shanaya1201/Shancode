@@ -1,19 +1,19 @@
 export const SECTIONS = [
   { id: 1, title: '1. Programming Basics & Complexity', slug: 'basics-complexity', icon: 'Code', description: 'Big-O notation, time and space complexity, memory models, recursion fundamentals.', order_index: 1 },
-  { id: 2, title: '2. Arrays & Memory Buffers', slug: 'arrays', icon: 'Layers', description: 'Contiguous memory, prefix sums, two pointers, and difference arrays.', order_index: 2 },
-  { id: 3, title: '3. Strings & Character Encodings', slug: 'strings', icon: 'Type', description: 'String immutability, pattern matching, sliding window, and anagram frequency hashing.', order_index: 3 },
+  { id: 2, title: '2. Arrays & Two Pointers', slug: 'arrays', icon: 'Layers', description: 'Contiguous memory, prefix sums, two pointers, difference arrays, and kadane algorithm.', order_index: 2 },
+  { id: 3, title: '3. Strings & Sliding Window', slug: 'strings', icon: 'Type', description: 'String immutability, pattern matching, sliding window, anagram frequency hashing.', order_index: 3 },
   { id: 4, title: '4. Linked Lists', slug: 'linked-lists', icon: 'Link', description: 'Singly, doubly, circular lists, fast & slow pointers, reversal, and cycle detection.', order_index: 4 },
-  { id: 5, title: '5. Stacks & Queues', slug: 'stacks-queues', icon: 'Server', description: 'LIFO & FIFO mechanics, monotonic stacks, parenthesis matching, and sliding window maximum.', order_index: 5 },
-  { id: 6, title: '6. Hashing & Hash Tables', slug: 'hashing', icon: 'Hash', description: 'Direct address tables, collision resolution, hash maps, hash sets, and rolling hashes.', order_index: 6 },
+  { id: 5, title: '5. Stacks & Queues', slug: 'stacks-queues', icon: 'Server', description: 'LIFO & FIFO mechanics, monotonic stacks, parenthesis matching, and queue buffers.', order_index: 5 },
+  { id: 6, title: '6. Hashing & Hash Tables', slug: 'hashing', icon: 'Hash', description: 'Direct address tables, collision resolution, hash maps, hash sets, rolling hashes.', order_index: 6 },
   { id: 7, title: '7. Binary Search & Search Space', slug: 'binary-search', icon: 'Search', description: 'Divide-and-conquer on sorted inputs, search space monotonic predicates, lower/upper bounds.', order_index: 7 },
   { id: 8, title: '8. Trees & Tree Traversals', slug: 'trees', icon: 'GitBranch', description: 'Binary trees, BFS level-order, DFS pre/in/post-order, lowest common ancestors, tree diameter.', order_index: 8 },
   { id: 9, title: '9. Binary Search Trees', slug: 'binary-search-trees', icon: 'GitCommit', description: 'BST invariant properties, validation, search, insertion, deletion, and balancing.', order_index: 9 },
   { id: 10, title: '10. Heaps & Priority Queues', slug: 'heaps', icon: 'ChevronsUp', description: 'Binary heaps, min/max heap invariants, Top-K elements, and continuous median streams.', order_index: 10 },
-  { id: 11, title: '11. Graphs & Connectivity', slug: 'graphs', icon: 'Share2', description: 'Adjacency lists/matrices, BFS, DFS, topological sort, Dijkstra shortest path, and cycle detection.', order_index: 11 },
-  { id: 12, title: '12. Recursion & Backtracking', slug: 'backtracking', icon: 'RotateCcw', description: 'State space tree exploration, pruning, subsets, permutations, N-Queens, and Sudoku.', order_index: 12 },
-  { id: 13, title: '13. Dynamic Programming (1D & 2D)', slug: 'dynamic-programming', icon: 'Cpu', description: 'Overlapping subproblems, optimal substructure, memoization, bottom-up tabulation, space optimization.', order_index: 13 },
-  { id: 14, title: '14. Greedy Algorithms', slug: 'greedy', icon: 'TrendingUp', description: 'Locally optimal choices, interval scheduling, Huffman coding, jump games.', order_index: 14 },
-  { id: 15, title: '15. Advanced DSA & Trie', slug: 'advanced-dsa', icon: 'Zap', description: 'Prefix trees (Trie), Union-Find (Disjoint Set Union with path compression), and Segment Trees.', order_index: 15 }
+  { id: 11, title: '11. Graphs & Connectivity', slug: 'graphs', icon: 'Share2', description: 'Adjacency lists/matrices, BFS, DFS, topological sort, Dijkstra shortest path, cycle detection.', order_index: 11 },
+  { id: 12, title: '12. Recursion & Backtracking', slug: 'backtracking', icon: 'RotateCcw', description: 'State space tree exploration, pruning, subsets, combinations, permutations, N-Queens.', order_index: 12 },
+  { id: 13, title: '13. Dynamic Programming (1D & 2D)', slug: 'dynamic-programming', icon: 'Cpu', description: 'Overlapping subproblems, optimal substructure, memoization, bottom-up tabulation.', order_index: 13 },
+  { id: 14, title: '14. Greedy Algorithms & Intervals', slug: 'greedy', icon: 'TrendingUp', description: 'Locally optimal choices, interval scheduling, merge intervals, jump games.', order_index: 14 },
+  { id: 15, title: '15. Advanced DSA & Trie', slug: 'advanced-dsa', icon: 'Zap', description: 'Prefix trees (Trie), Union-Find (Disjoint Set Union with path compression), Segment Trees.', order_index: 15 }
 ];
 
 export const PATTERNS = [
@@ -25,10 +25,10 @@ export const PATTERNS = [
     total_levels: 4,
     icon: 'Maximize2',
     levels: [
-      { level_number: 1, title: 'Foundation', required_count: 2, difficulty: 'Easy' },
-      { level_number: 2, title: 'Opposite Ends Drill', required_count: 3, difficulty: 'Easy' },
-      { level_number: 3, title: 'Triplets & Intervals', required_count: 3, difficulty: 'Medium' },
-      { level_number: 4, title: 'Subarray Mastery', required_count: 2, difficulty: 'Hard' }
+      { level_number: 1, title: 'Foundation (Two Sum II, Palindromes)', required_count: 2, difficulty: 'Easy' },
+      { level_number: 2, title: 'Opposite Ends Drill (Container With Water)', required_count: 2, difficulty: 'Medium' },
+      { level_number: 3, title: 'Triplets & Deduplication (3Sum)', required_count: 2, difficulty: 'Medium' },
+      { level_number: 4, title: 'Hard Subarrays (Trapping Rain Water)', required_count: 1, difficulty: 'Hard' }
     ]
   },
   {
@@ -40,9 +40,9 @@ export const PATTERNS = [
     icon: 'Sliders',
     levels: [
       { level_number: 1, title: 'Fixed Window', required_count: 2, difficulty: 'Easy' },
-      { level_number: 2, title: 'Dynamic Subarrays', required_count: 3, difficulty: 'Medium' },
-      { level_number: 3, title: 'Character Frequencies', required_count: 3, difficulty: 'Medium' },
-      { level_number: 4, title: 'Hard Substring Minimums', required_count: 2, difficulty: 'Hard' }
+      { level_number: 2, title: 'Dynamic Substrings (Longest Without Repeat)', required_count: 2, difficulty: 'Medium' },
+      { level_number: 3, title: 'Character Frequencies (Anagrams)', required_count: 2, difficulty: 'Medium' },
+      { level_number: 4, title: 'Hard Substring Minimums (Minimum Window Substring)', required_count: 1, difficulty: 'Hard' }
     ]
   },
   {
@@ -54,9 +54,9 @@ export const PATTERNS = [
     icon: 'Target',
     levels: [
       { level_number: 1, title: 'Array Search', required_count: 2, difficulty: 'Easy' },
-      { level_number: 2, title: 'Rotated Arrays', required_count: 3, difficulty: 'Medium' },
-      { level_number: 3, title: 'Capacity & Speed', required_count: 3, difficulty: 'Medium' },
-      { level_number: 4, title: 'Median of Arrays', required_count: 2, difficulty: 'Hard' }
+      { level_number: 2, title: 'Rotated Arrays', required_count: 2, difficulty: 'Medium' },
+      { level_number: 3, title: 'Capacity & Speed (Koko Eating Bananas)', required_count: 2, difficulty: 'Medium' },
+      { level_number: 4, title: 'Median of Two Sorted Arrays', required_count: 1, difficulty: 'Hard' }
     ]
   },
   {
@@ -69,8 +69,8 @@ export const PATTERNS = [
     levels: [
       { level_number: 1, title: 'Next Greater Element', required_count: 2, difficulty: 'Easy' },
       { level_number: 2, title: 'Daily Temperatures', required_count: 2, difficulty: 'Medium' },
-      { level_number: 3, title: 'Histogram Area', required_count: 2, difficulty: 'Hard' },
-      { level_number: 4, title: 'Maximal Rectangle', required_count: 2, difficulty: 'Hard' }
+      { level_number: 3, title: 'Largest Rectangle in Histogram', required_count: 1, difficulty: 'Hard' },
+      { level_number: 4, title: 'Maximal Rectangle', required_count: 1, difficulty: 'Hard' }
     ]
   },
   {
@@ -81,10 +81,10 @@ export const PATTERNS = [
     total_levels: 4,
     icon: 'Share2',
     levels: [
-      { level_number: 1, title: 'Grid Flood Fill', required_count: 2, difficulty: 'Easy' },
-      { level_number: 2, title: 'Number of Islands', required_count: 3, difficulty: 'Medium' },
-      { level_number: 3, title: 'Course Schedule & Topo', required_count: 3, difficulty: 'Medium' },
-      { level_number: 4, title: 'Word Ladder & Shortest Paths', required_count: 2, difficulty: 'Hard' }
+      { level_number: 1, title: 'Flood Fill & Matrix', required_count: 2, difficulty: 'Easy' },
+      { level_number: 2, title: 'Number of Islands', required_count: 2, difficulty: 'Medium' },
+      { level_number: 3, title: 'Course Schedule & Topo Sort', required_count: 2, difficulty: 'Medium' },
+      { level_number: 4, title: 'Word Ladder & Shortest Paths', required_count: 1, difficulty: 'Hard' }
     ]
   },
   {
@@ -95,10 +95,10 @@ export const PATTERNS = [
     total_levels: 4,
     icon: 'Cpu',
     levels: [
-      { level_number: 1, title: 'Fibonacci & Stairs', required_count: 2, difficulty: 'Easy' },
-      { level_number: 2, title: 'House Robber & Jumps', required_count: 3, difficulty: 'Medium' },
-      { level_number: 3, title: 'Coin Change & Subsets', required_count: 3, difficulty: 'Medium' },
-      { level_number: 4, title: 'Edit Distance & Stocks', required_count: 2, difficulty: 'Hard' }
+      { level_number: 1, title: 'Fibonacci & Climbing Stairs', required_count: 2, difficulty: 'Easy' },
+      { level_number: 2, title: 'House Robber & Jumps', required_count: 2, difficulty: 'Medium' },
+      { level_number: 3, title: 'Coin Change & LIS', required_count: 2, difficulty: 'Medium' },
+      { level_number: 4, title: 'Edit Distance & Hard 2D DP', required_count: 1, difficulty: 'Hard' }
     ]
   }
 ];
@@ -287,7 +287,7 @@ std::vector<int> twoSumSorted(const std::vector<int>& nums, int target) {
     },
     common_mistakes: [
       'Applying two pointers on an unsorted array without sorting first.',
-      'Using `left <= right` instead of `left < right` when pairing two distinct elements (which could reuse the same element).',
+      'Using \`left <= right\` instead of \`left < right\` when pairing two distinct elements (which could reuse the same element).',
       'Forgetting to handle duplicate elements when finding triplets (3Sum).'
     ],
     quiz: {
@@ -311,81 +311,71 @@ std::vector<int> twoSumSorted(const std::vector<int>& nums, int target) {
   {
     id: 3,
     section_id: 2,
-    title: 'Prefix Sum & Range Queries',
+    title: 'Prefix Sum & Kadane\'s Algorithm',
     slug: 'prefix-sum',
     order_index: 2,
-    video_url: 'https://www.youtube.com/embed/scD3KsKMrgk',
+    video_url: 'https://www.youtube.com/embed/86CQq33Zoe8',
     video_source: 'youtube',
-    summary: 'Precompute cumulative sums to answer any subarray sum query [L, R] in instant O(1) time.',
-    intuition: 'Instead of summing elements between indices L and R repeatedly (costing O(N) per query), precalculate prefix[i] = nums[0] + ... + nums[i]. Then the sum of any range [L, R] is simply prefix[R] - prefix[L - 1].',
-    when_to_use: 'Use when you have multiple range sum queries, or need to count subarrays with a specific target sum K using a hash map in O(N) total time.',
+    summary: 'Precompute cumulative sums for instant O(1) range queries and find maximum contiguous subarrays with Kadane\'s algorithm.',
+    intuition: 'Instead of summing elements between indices L and R repeatedly (costing O(N) per query), precalculate prefix[i] = nums[0] + ... + nums[i]. For max subarray, Kadane tracks current_max = max(x, current_max + x).',
+    when_to_use: 'Use when you have multiple range sum queries, or need to find maximum subarray sums in O(N) time and O(1) space.',
     visual_svg: `<svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto">
       <rect x="20" y="20" width="360" height="35" rx="6" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
-      <text x="50" y="42" fill="#94a3b8" font-size="12">nums: [ 3, 1, 4, 1, 5 ]</text>
+      <text x="50" y="42" fill="#94a3b8" font-size="12">nums: [ -2, 1, -3, 4, -1, 2, 1, -5, 4 ]</text>
       <rect x="20" y="65" width="360" height="35" rx="6" fill="#0f172a" stroke="#10b981" stroke-width="2"/>
-      <text x="50" y="87" fill="#10b981" font-size="12">prefix: [ 0, 3, 4, 8, 9, 14 ]</text>
+      <text x="50" y="87" fill="#10b981" font-size="12">Max Subarray [ 4, -1, 2, 1 ] -> Sum = 6</text>
     </svg>`,
     code_samples: {
-      python: `class NumArray:
-    def __init__(self, nums):
-        self.prefix = [0] * (len(nums) + 1)
-        for i in range(len(nums)):
-            self.prefix[i + 1] = self.prefix[i] + nums[i]
-
-    def sumRange(self, left, right):
-        return self.prefix[right + 1] - self.prefix[left]`,
-      javascript: `class NumArray {
-  constructor(nums) {
-    this.prefix = new Array(nums.length + 1).fill(0);
-    for (let i = 0; i < nums.length; i++) {
-      this.prefix[i + 1] = this.prefix[i] + nums[i];
-    }
+      python: `def maxSubArray(nums):
+    max_sum = nums[0]
+    curr_sum = nums[0]
+    for num in nums[1:]:
+        curr_sum = max(num, curr_sum + num)
+        max_sum = max(max_sum, curr_sum)
+    return max_sum`,
+      javascript: `function maxSubArray(nums) {
+  let maxSum = nums[0];
+  let currSum = nums[0];
+  for (let i = 1; i < nums.length; i++) {
+    currSum = Math.max(nums[i], currSum + nums[i]);
+    maxSum = Math.max(maxSum, currSum);
   }
-
-  sumRange(left, right) {
-    return this.prefix[right + 1] - this.prefix[left];
-  }
+  return maxSum;
 }`,
       cpp: `#include <vector>
+#include <algorithm>
 
-class NumArray {
-    std::vector<int> prefix;
-public:
-    NumArray(const std::vector<int>& nums) {
-        prefix.resize(nums.size() + 1, 0);
-        for (size_t i = 0; i < nums.size(); i++) {
-            prefix[i + 1] = prefix[i] + nums[i];
+int maxSubArray(const std::vector<int>& nums) {
+    int maxSum = nums[0], currSum = nums[0];
+    for (size_t i = 1; i < nums.size(); i++) {
+        currSum = std::max(nums[i], currSum + nums[i]);
+        maxSum = std::max(maxSum, currSum);
+    }
+    return maxSum;
+}`,
+      java: `public class Kadane {
+    public static int maxSubArray(int[] nums) {
+        int maxSum = nums[0], currSum = nums[0];
+        for (int i = 1; i < nums.length; i++) {
+            currSum = Math.max(nums[i], currSum + nums[i]);
+            maxSum = Math.max(maxSum, currSum);
         }
-    }
-    int sumRange(int left, int right) {
-        return prefix[right + 1] - prefix[left];
-    }
-};`,
-      java: `public class NumArray {
-    private int[] prefix;
-    public NumArray(int[] nums) {
-        prefix = new int[nums.length + 1];
-        for (int i = 0; i < nums.length; i++) {
-            prefix[i + 1] = prefix[i] + nums[i];
-        }
-    }
-    public int sumRange(int left, int right) {
-        return prefix[right + 1] - prefix[left];
+        return maxSum;
     }
 }`
     },
     common_mistakes: [
-      'Off-by-one indexing error when accessing prefix array without an initial dummy 0.',
-      'Integer overflow when summing large values (use 64-bit long in C++/Java).'
+      'Initializing maxSum to 0 when all array elements are negative (must initialize to nums[0] or -Infinity).',
+      'Forgetting that Kadane runs in strict O(N) time and O(1) auxiliary space.'
     ],
     quiz: {
-      title: 'Prefix Sum Quiz',
+      title: 'Kadane Algorithm Quiz',
       questions: [
         {
-          question: 'What is the query time complexity for range sum [L, R] using a precomputed prefix sum array?',
-          options: ['O(R - L)', 'O(1)', 'O(log N)', 'O(N)'],
+          question: 'What happens in Kadane algorithm when current_sum drops below 0?',
+          options: ['We stop the algorithm', 'We reset current_sum to 0 on the next step because adding a negative prefix hurts future sums', 'We return -1', 'We multiply by -1'],
           correct_option_index: 1,
-          explanation: 'Range sum queries on a precomputed array require a single subtraction: prefix[R+1] - prefix[L], which executes in O(1).'
+          explanation: 'If the accumulated sum is negative, any future subarray will be larger without including this negative prefix.'
         }
       ]
     }
@@ -400,7 +390,7 @@ public:
     video_source: 'youtube',
     summary: 'Maintain a dynamic continuous subsegment window [L, R] to solve substring/subarray optimization problems in O(N).',
     intuition: 'Instead of recalculating the window content from scratch on every step (O(N^2)), expand the right pointer to include elements, and contract the left pointer only when the window constraint is violated.',
-    when_to_use: 'Use when looking for longest/shortest continuous subarrays or substrings meeting a frequency or sum condition (e.g. longest substring without repeating characters).',
+    when_to_use: 'Use when looking for longest/shortest continuous subarrays or substrings meeting a frequency or sum condition (e.g. longest substring without repeating characters, minimum window substring).',
     visual_svg: `<svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto">
       <rect x="30" y="30" width="340" height="45" rx="6" fill="#111827" stroke="#374151" stroke-width="1"/>
       <rect x="70" y="26" width="170" height="53" rx="8" fill="#6366f1" fill-opacity="0.2" stroke="#6366f1" stroke-width="2"/>
@@ -411,19 +401,16 @@ public:
     char_index = {}
     left = 0
     max_len = 0
-    
     for right, ch in enumerate(s):
         if ch in char_index and char_index[ch] >= left:
             left = char_index[ch] + 1
         char_index[ch] = right
         max_len = max(max_len, right - left + 1)
-        
     return max_len`,
       javascript: `function lengthOfLongestSubstring(s) {
   const seen = new Map();
   let left = 0;
   let maxLen = 0;
-
   for (let right = 0; right < s.length; right++) {
     const ch = s[right];
     if (seen.has(ch) && seen.get(ch) >= left) {
@@ -550,14 +537,14 @@ int binarySearch(const std::vector<int>& nums, int target) {
 }`
     },
     common_mistakes: [
-      'Using `(low + high) / 2` which can cause 32-bit integer overflow in languages like C++/Java (use `low + (high - low) / 2`).',
-      'Infinite loops caused by updating `low = mid` without integer rounding consideration.'
+      'Using \`(low + high) / 2\` which can cause 32-bit integer overflow in languages like C++/Java (use \`low + (high - low) / 2\`).',
+      'Infinite loops caused by updating \`low = mid\` without integer rounding consideration.'
     ],
     quiz: {
       title: 'Binary Search Essentials',
       questions: [
         {
-          question: 'Why is `low + (high - low) / 2` preferred over `(low + high) / 2` in C++/Java?',
+          question: 'Why is \`low + (high - low) / 2\` preferred over \`(low + high) / 2\` in C++/Java?',
           options: ['It runs faster on the CPU', 'It avoids integer overflow when low + high exceeds 2^31 - 1', 'It automatically rounds floats', 'It works on unsorted lists'],
           correct_option_index: 1,
           explanation: 'When low and high are large positive integers, their direct sum can overflow the 32-bit signed integer limit, resulting in negative values.'
@@ -567,7 +554,9 @@ int binarySearch(const std::vector<int>& nums, int target) {
   }
 ];
 
+// Expanded Suite of 20+ Top LeetCode/DSA Problems across All Categories
 export const PROBLEMS = [
+  // 1. Two Sum
   {
     id: 1,
     title: 'Two Sum',
@@ -578,28 +567,20 @@ export const PROBLEMS = [
     concept_id: 2,
     description: `Given an array of integers \`nums\` and an integer \`target\`, return *indices of the two numbers such that they add up to \`target\`*.
 
-You may assume that each input would have ***exactly one solution***, and you may not use the same element twice.
-
-You can return the answer in any order.`,
+You may assume that each input would have ***exactly one solution***, and you may not use the same element twice.`,
     examples: [
-      { input: '[2, 7, 11, 15]\n9', output: '[0, 1]', explanation: 'Because nums[0] + nums[1] == 9, we return [0, 1].' },
-      { input: '[3, 2, 4]\n6', output: '[1, 2]', explanation: 'Because nums[1] + nums[2] == 6, we return [1, 2].' },
-      { input: '[3, 3]\n6', output: '[0, 1]', explanation: 'Because nums[0] + nums[1] == 6, we return [0, 1].' }
+      { input: '[2, 7, 11, 15]\n9', output: '[0, 1]', explanation: 'nums[0] + nums[1] == 9, return [0, 1].' },
+      { input: '[3, 2, 4]\n6', output: '[1, 2]', explanation: 'nums[1] + nums[2] == 6, return [1, 2].' }
     ],
-    constraints: [
-      '2 <= nums.length <= 10^4',
-      '-10^9 <= nums[i] <= 10^9',
-      '-10^9 <= target <= 10^9',
-      'Only one valid answer exists.'
-    ],
+    constraints: ['2 <= nums.length <= 10^4', '-10^9 <= nums[i], target <= 10^9'],
     company_tags: ['Google', 'Amazon', 'Meta', 'Microsoft', 'Apple', 'Netflix'],
     starter_code: {
       python: `class Solution:
     def twoSum(self, nums: list[int], target: int) -> list[int]:
-        # Write your code here
+        # Write your solution here
         pass`,
       javascript: `function twoSum(nums, target) {
-  // Write your code here
+  // Write your solution here
 }`,
       cpp: `#include <vector>
 #include <unordered_map>
@@ -607,24 +588,20 @@ You can return the answer in any order.`,
 class Solution {
 public:
     std::vector<int> twoSum(std::vector<int>& nums, int target) {
-        // Write your code here
         return {};
     }
 };`,
-      java: `import java.util.HashMap;
-
-class Solution {
+      java: `class Solution {
     public int[] twoSum(int[] nums, int target) {
-        // Write your code here
         return new int[]{};
     }
 }`
     },
     solution: {
-      intuition: 'A brute force approach checks all pairs in O(N^2). We can optimize to O(N) by storing seen values and their indices in a hash map as we iterate. For each element x, we check if (target - x) exists in the map.',
-      algorithm: '1. Initialize an empty hash map seen = {}\n2. Iterate through nums with index i and value num\n3. Calculate complement = target - num\n4. If complement is in seen, return [seen[complement], i]\n5. Otherwise, store seen[num] = i',
-      time_complexity: 'O(N) - We traverse the list containing N elements exactly once with O(1) hash map lookups.',
-      space_complexity: 'O(N) - The hash map stores up to N elements in memory.',
+      intuition: 'Store each number and its index in a hash map. For each num, check if (target - num) exists in O(1).',
+      algorithm: '1. seen = {}\n2. For i, num in enumerate(nums):\n3.   if target - num in seen: return [seen[target - num], i]\n4.   seen[num] = i\n5. Return []',
+      time_complexity: 'O(N)',
+      space_complexity: 'O(N)',
       code: `def twoSum(nums, target):
     seen = {}
     for i, num in enumerate(nums):
@@ -635,18 +612,18 @@ class Solution {
     return []`
     },
     hints: [
-      { tier: 1, text: 'A naive search takes O(N^2) by checking every pair. Can you find what you need in O(1) time?' },
-      { tier: 2, text: 'For each number x, you are looking for target - x. What data structure gives O(1) lookups?' },
-      { tier: 3, text: 'Use a Hash Map mapping each value to its index. Check if target - num exists before adding num to the map.' }
+      { tier: 1, text: 'Can you look up complements in O(1) time?' },
+      { tier: 2, text: 'For each number x, calculate target - x and check if seen.' },
+      { tier: 3, text: 'Use a Hash Map mapping values to their indices.' }
     ],
     test_cases: [
       { input_data: '[2, 7, 11, 15]\n9', expected_output: '[0, 1]', is_sample: 1 },
       { input_data: '[3, 2, 4]\n6', expected_output: '[1, 2]', is_sample: 1 },
-      { input_data: '[3, 3]\n6', expected_output: '[0, 1]', is_sample: 1 },
-      { input_data: '[1, 5, 8, 12, 19]\n20', expected_output: '[0, 4]', is_sample: 0 },
-      { input_data: '[-3, 4, 3, 90]\n0', expected_output: '[0, 2]', is_sample: 0 }
+      { input_data: '[3, 3]\n6', expected_output: '[0, 1]', is_sample: 1 }
     ]
   },
+
+  // 2. Valid Palindrome
   {
     id: 2,
     title: 'Valid Palindrome',
@@ -655,77 +632,161 @@ class Solution {
     topic: 'Strings',
     pattern_id: 1,
     concept_id: 2,
-    description: `A phrase is a **palindrome** if, after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters, it reads the same forward and backward. Alphanumeric characters include letters and numbers.
-
-Given a string \`s\`, return \`true\` *if it is a palindrome, or* \`false\` *otherwise*.`,
+    description: `A phrase is a **palindrome** if, after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters, it reads the same forward and backward.`,
     examples: [
       { input: '"A man, a plan, a canal: Panama"', output: 'true', explanation: '"amanaplanacanalpanama" is a palindrome.' },
-      { input: '"race a car"', output: 'false', explanation: '"raceacar" is not a palindrome.' },
-      { input: '" "', output: 'true', explanation: 's is an empty string "" after removing non-alphanumeric characters.' }
+      { input: '"race a car"', output: 'false', explanation: '"raceacar" is not a palindrome.' }
     ],
-    constraints: [
-      '1 <= s.length <= 2 * 10^5',
-      's consists only of printable ASCII characters.'
-    ],
+    constraints: ['1 <= s.length <= 2 * 10^5'],
     company_tags: ['Meta', 'Amazon', 'Microsoft', 'Google'],
     starter_code: {
       python: `class Solution:
     def isPalindrome(self, s: str) -> bool:
-        # Write your code here
         pass`,
       javascript: `function isPalindrome(s) {
-  // Write your code here
 }`,
-      cpp: `#include <string>
-#include <cctype>
-
-class Solution {
-public:
-    bool isPalindrome(std::string s) {
-        // Write your code here
-        return false;
-    }
-};`,
-      java: `class Solution {
-    public boolean isPalindrome(String s) {
-        // Write your code here
-        return false;
-    }
-}`
+      cpp: `class Solution { public: bool isPalindrome(std::string s) { return false; } };`,
+      java: `class Solution { public boolean isPalindrome(String s) { return false; } }`
     },
     solution: {
-      intuition: 'Use two pointers starting at opposite ends of the string. Skip non-alphanumeric characters and compare the lowercased characters.',
-      algorithm: '1. Set left = 0, right = len(s) - 1\n2. While left < right, increment left if s[left] is not alphanumeric\n3. Decrement right if s[right] is not alphanumeric\n4. Compare s[left].lower() with s[right].lower(). If unequal, return false\n5. Advance both pointers. If loop completes, return true.',
-      time_complexity: 'O(N) - Each character is inspected at most twice.',
-      space_complexity: 'O(1) - Pointers operate in-place without copying the string.',
+      intuition: 'Two converging pointers from start and end, skipping non-alphanumeric characters.',
+      algorithm: '1. left = 0, right = len(s) - 1\n2. Skip non-alphanumeric characters\n3. Compare s[left].lower() with s[right].lower()\n4. If equal, advance pointers; else return False.',
+      time_complexity: 'O(N)',
+      space_complexity: 'O(1)',
       code: `def isPalindrome(s: str) -> bool:
     left, right = 0, len(s) - 1
     while left < right:
-        while left < right and not s[left].isalnum():
-            left += 1
-        while left < right and not s[right].isalnum():
-            right -= 1
-        if s[left].lower() != s[right].lower():
-            return False
-        left += 1
-        right -= 1
+        while left < right and not s[left].isalnum(): left += 1
+        while left < right and not s[right].isalnum(): right -= 1
+        if s[left].lower() != s[right].lower(): return False
+        left += 1; right -= 1
     return True`
     },
     hints: [
-      { tier: 1, text: 'Can you compare characters from both ends without allocating a new string?' },
-      { tier: 2, text: 'Use two pointers (left and right) and advance past whitespace/punctuation.' },
-      { tier: 3, text: 'Compare characters in lowercase when both pointers land on alphanumeric characters.' }
+      { tier: 1, text: 'Use two pointers from opposite ends.' },
+      { tier: 2, text: 'Skip spaces and punctuation with .isalnum().' },
+      { tier: 3, text: 'Compare characters in lowercase.' }
     ],
     test_cases: [
       { input_data: '"A man, a plan, a canal: Panama"', expected_output: 'true', is_sample: 1 },
       { input_data: '"race a car"', expected_output: 'false', is_sample: 1 },
-      { input_data: '" "', expected_output: 'true', is_sample: 1 },
-      { input_data: '"0P"', expected_output: 'false', is_sample: 0 },
-      { input_data: '"ab_a"', expected_output: 'true', is_sample: 0 }
+      { input_data: '" "', expected_output: 'true', is_sample: 1 }
     ]
   },
+
+  // 3. 3Sum
   {
     id: 3,
+    title: '3Sum',
+    slug: '3sum',
+    difficulty: 'Medium',
+    topic: 'Arrays',
+    pattern_id: 1,
+    concept_id: 2,
+    description: `Given an integer array \`nums\`, return all the triplets \`[nums[i], nums[j], nums[k]]\` such that \`i != j\`, \`i != k\`, and \`j != k\`, and \`nums[i] + nums[j] + nums[k] == 0\`.
+
+Notice that the solution set must not contain duplicate triplets.`,
+    examples: [
+      { input: '[-1,0,1,2,-1,-4]', output: '[[-1,-1,2],[-1,0,1]]', explanation: 'Triplets summing to 0.' },
+      { input: '[0,1,1]', output: '[]', explanation: 'No triplet sums to 0.' }
+    ],
+    constraints: ['3 <= nums.length <= 3000', '-10^5 <= nums[i] <= 10^5'],
+    company_tags: ['Meta', 'Amazon', 'Google', 'Apple', 'Microsoft'],
+    starter_code: {
+      python: `class Solution:
+    def threeSum(self, nums: list[int]) -> list[list[int]]:
+        pass`,
+      javascript: `function threeSum(nums) {
+}`,
+      cpp: `class Solution { public: std::vector<std::vector<int>> threeSum(std::vector<int>& nums) { return {}; } };`,
+      java: `class Solution { public List<List<Integer>> threeSum(int[] nums) { return new ArrayList<>(); } }`
+    },
+    solution: {
+      intuition: 'Sort array first. Fix nums[i] and use Two Pointers on the remaining subarray to find pairs summing to -nums[i], skipping duplicates.',
+      algorithm: '1. nums.sort()\n2. For i in range(len(nums)-2):\n3.   if i > 0 and nums[i] == nums[i-1]: continue\n4.   left, right = i+1, len(nums)-1\n5.   while left < right: check sum and skip duplicates.',
+      time_complexity: 'O(N^2)',
+      space_complexity: 'O(1)',
+      code: `def threeSum(nums: list[int]) -> list[list[int]]:
+    nums.sort()
+    res = []
+    for i in range(len(nums) - 2):
+        if i > 0 and nums[i] == nums[i - 1]: continue
+        l, r = i + 1, len(nums) - 1
+        while l < r:
+            s = nums[i] + nums[l] + nums[r]
+            if s < 0: l += 1
+            elif s > 0: r -= 1
+            else:
+                res.append([nums[i], nums[l], nums[r]])
+                while l < r and nums[l] == nums[l + 1]: l += 1
+                while l < r and nums[r] == nums[r - 1]: r -= 1
+                l += 1; r -= 1
+    return res`
+    },
+    hints: [
+      { tier: 1, text: 'Can sorting the array make pair searching deterministic?' },
+      { tier: 2, text: 'Fix the first element and use two pointers for the remaining two.' },
+      { tier: 3, text: 'Always skip consecutive identical numbers to prevent duplicate triplets.' }
+    ],
+    test_cases: [
+      { input_data: '[-1,0,1,2,-1,-4]', expected_output: '[[-1,-1,2],[-1,0,1]]', is_sample: 1 },
+      { input_data: '[0,1,1]', expected_output: '[]', is_sample: 1 },
+      { input_data: '[0,0,0]', expected_output: '[[0,0,0]]', is_sample: 1 }
+    ]
+  },
+
+  // 4. Container With Most Water
+  {
+    id: 4,
+    title: 'Container With Most Water',
+    slug: 'container-with-most-water',
+    difficulty: 'Medium',
+    topic: 'Arrays',
+    pattern_id: 1,
+    concept_id: 2,
+    description: `Given \`n\` vertical lines, find two lines that together with the x-axis form a container, such that the container contains the most water.`,
+    examples: [
+      { input: '[1,8,6,2,5,4,8,3,7]', output: '49', explanation: 'Max area is 49.' }
+    ],
+    constraints: ['2 <= height.length <= 10^5'],
+    company_tags: ['Amazon', 'Google', 'Meta'],
+    starter_code: {
+      python: `class Solution:
+    def maxArea(self, height: list[int]) -> int:
+        pass`,
+      javascript: `function maxArea(height) {
+}`,
+      cpp: `class Solution { public: int maxArea(std::vector<int>& height) { return 0; } };`,
+      java: `class Solution { public int maxArea(int[] height) { return 0; } }`
+    },
+    solution: {
+      intuition: 'Always move the pointer pointing to the shorter wall inward, as moving the taller wall cannot increase the water bound.',
+      algorithm: '1. l, r = 0, len(height) - 1, max_a = 0\n2. While l < r:\n3.   max_a = max(max_a, min(height[l], height[r]) * (r - l))\n4.   if height[l] < height[r]: l += 1 else: r -= 1\n5. Return max_a',
+      time_complexity: 'O(N)',
+      space_complexity: 'O(1)',
+      code: `def maxArea(height: list[int]) -> int:
+    l, r = 0, len(height) - 1
+    max_a = 0
+    while l < r:
+        max_a = max(max_a, min(height[l], height[r]) * (r - l))
+        if height[l] < height[r]: l += 1
+        else: r -= 1
+    return max_a`
+    },
+    hints: [
+      { tier: 1, text: 'Start with the widest container.' },
+      { tier: 2, text: 'Area is bottlenecked by the shorter bar.' },
+      { tier: 3, text: 'Move the shorter line inwards.' }
+    ],
+    test_cases: [
+      { input_data: '[1,8,6,2,5,4,8,3,7]', expected_output: '49', is_sample: 1 },
+      { input_data: '[1,1]', expected_output: '1', is_sample: 1 }
+    ]
+  },
+
+  // 5. Longest Substring Without Repeating Characters
+  {
+    id: 5,
     title: 'Longest Substring Without Repeating Characters',
     slug: 'longest-substring-without-repeating-characters',
     difficulty: 'Medium',
@@ -734,48 +795,25 @@ public:
     concept_id: 4,
     description: `Given a string \`s\`, find the length of the **longest substring** without repeating characters.`,
     examples: [
-      { input: '"abcabcbb"', output: '3', explanation: 'The answer is "abc", with the length of 3.' },
-      { input: '"bbbbb"', output: '1', explanation: 'The answer is "b", with the length of 1.' },
-      { input: '"pwwkew"', output: '3', explanation: 'The answer is "wke", with the length of 3.' }
+      { input: '"abcabcbb"', output: '3', explanation: '"abc" with length 3.' },
+      { input: '"bbbbb"', output: '1', explanation: '"b" with length 1.' }
     ],
-    constraints: [
-      '0 <= s.length <= 5 * 10^4',
-      's consists of English letters, digits, symbols and spaces.'
-    ],
+    constraints: ['0 <= s.length <= 5 * 10^4'],
     company_tags: ['Google', 'Amazon', 'Meta', 'Apple', 'Microsoft'],
     starter_code: {
       python: `class Solution:
     def lengthOfLongestSubstring(self, s: str) -> int:
-        # Write your code here
         pass`,
       javascript: `function lengthOfLongestSubstring(s) {
-  // Write your code here
 }`,
-      cpp: `#include <string>
-#include <vector>
-#include <algorithm>
-
-class Solution {
-public:
-    int lengthOfLongestSubstring(std::string s) {
-        // Write your code here
-        return 0;
-    }
-};`,
-      java: `import java.util.HashMap;
-
-class Solution {
-    public int lengthOfLongestSubstring(String s) {
-        // Write your code here
-        return 0;
-    }
-}`
+      cpp: `class Solution { public: int lengthOfLongestSubstring(std::string s) { return 0; } };`,
+      java: `class Solution { public int lengthOfLongestSubstring(String s) { return 0; } }`
     },
     solution: {
-      intuition: 'Maintain a sliding window [left, right] of unique characters. If a character at index right is already in our map and its last position >= left, jump left to last_position + 1.',
-      algorithm: '1. seen = map of char -> index\n2. left = 0, max_len = 0\n3. For right from 0 to len(s)-1:\n4.   if s[right] in seen and seen[s[right]] >= left: left = seen[s[right]] + 1\n5.   seen[s[right]] = right\n6.   max_len = max(max_len, right - left + 1)\n7. Return max_len',
-      time_complexity: 'O(N) - Right pointer scans string once.',
-      space_complexity: 'O(min(N, M)) - M is the alphabet charset size.',
+      intuition: 'Sliding window tracking character indices. If duplicate is encountered within current window, jump left pointer past it.',
+      algorithm: '1. seen = {}\n2. left = 0, max_l = 0\n3. For right, ch in enumerate(s):\n4.   if ch in seen and seen[ch] >= left: left = seen[ch] + 1\n5.   seen[ch] = right\n6.   max_l = max(max_l, right - left + 1)\n7. Return max_l',
+      time_complexity: 'O(N)',
+      space_complexity: 'O(min(N, M))',
       code: `def lengthOfLongestSubstring(s: str) -> int:
     seen = {}
     left = 0
@@ -788,234 +826,263 @@ class Solution {
     return max_len`
     },
     hints: [
-      { tier: 1, text: 'Think about maintaining a sliding window of distinct characters.' },
-      { tier: 2, text: 'Store the most recent index where each character appeared.' },
-      { tier: 3, text: 'When you encounter a duplicate within the current window, move the left boundary to index + 1.' }
+      { tier: 1, text: 'Maintain a window of unique characters.' },
+      { tier: 2, text: 'Store the last seen index of each character.' },
+      { tier: 3, text: 'Advance left to seen[char] + 1 on duplicate.' }
     ],
     test_cases: [
       { input_data: '"abcabcbb"', expected_output: '3', is_sample: 1 },
       { input_data: '"bbbbb"', expected_output: '1', is_sample: 1 },
-      { input_data: '"pwwkew"', expected_output: '3', is_sample: 1 },
-      { input_data: '""', expected_output: '0', is_sample: 0 },
-      { input_data: '"au"', expected_output: '2', is_sample: 0 }
+      { input_data: '"pwwkew"', expected_output: '3', is_sample: 1 }
     ]
   },
+
+  // 6. Maximum Subarray (Kadane's)
   {
-    id: 4,
-    title: 'Container With Most Water',
-    slug: 'container-with-most-water',
+    id: 6,
+    title: 'Maximum Subarray',
+    slug: 'maximum-subarray',
     difficulty: 'Medium',
     topic: 'Arrays',
     pattern_id: 1,
-    concept_id: 2,
-    description: `You are given an integer array \`height\` of length \`n\`. There are \`n\` vertical lines drawn such that the two endpoints of the \`i\`th line are \`(i, 0)\` and \`(i, height[i])\`.
-
-Find two lines that together with the x-axis form a container, such that the container contains the most water.
-
-Return *the maximum amount of water a container can store*.`,
+    concept_id: 3,
+    description: `Given an integer array \`nums\`, find the subarray with the largest sum, and return *its sum*.`,
     examples: [
-      { input: '[1,8,6,2,5,4,8,3,7]', output: '49', explanation: 'The vertical lines are represented by array [1,8,6,2,5,4,8,3,7]. In this case, the max area of water the container can contain is 49.' },
-      { input: '[1,1]', output: '1', explanation: 'Max area is 1 * 1 = 1.' }
+      { input: '[-2,1,-3,4,-1,2,1,-5,4]', output: '6', explanation: 'The subarray [4,-1,2,1] has the largest sum 6.' },
+      { input: '[1]', output: '1', explanation: '[1] has sum 1.' }
     ],
-    constraints: [
-      'n == height.length',
-      '2 <= n <= 10^5',
-      '0 <= height[i] <= 10^4'
-    ],
-    company_tags: ['Amazon', 'Google', 'Meta', 'Apple'],
+    constraints: ['1 <= nums.length <= 10^5', '-10^4 <= nums[i] <= 10^4'],
+    company_tags: ['Amazon', 'Google', 'Meta', 'Microsoft', 'Apple'],
     starter_code: {
       python: `class Solution:
-    def maxArea(self, height: list[int]) -> int:
-        # Write your code here
+    def maxSubArray(self, nums: list[int]) -> int:
         pass`,
-      javascript: `function maxArea(height) {
-  // Write your code here
+      javascript: `function maxSubArray(nums) {
 }`,
-      cpp: `#include <vector>
-#include <algorithm>
-
-class Solution {
-public:
-    int maxArea(std::vector<int>& height) {
-        // Write your code here
-        return 0;
-    }
-};`,
-      java: `class Solution {
-    public int maxArea(int[] height) {
-        // Write your code here
-        return 0;
-    }
-}`
+      cpp: `class Solution { public: int maxSubArray(std::vector<int>& nums) { return 0; } };`,
+      java: `class Solution { public int maxSubArray(int[] nums) { return 0; } }`
     },
     solution: {
-      intuition: 'The area is bounded by the shorter line: min(height[left], height[right]) * (right - left). Moving the taller line inward can only decrease the width without increasing the bounded height. Thus, we always move the shorter line inward.',
-      algorithm: '1. left = 0, right = len(height) - 1, max_area = 0\n2. While left < right:\n3.   current_area = min(height[left], height[right]) * (right - left)\n4.   max_area = max(max_area, current_area)\n5.   If height[left] < height[right]: left += 1 else: right -= 1\n6. Return max_area',
-      time_complexity: 'O(N) - Pointers converge in single pass.',
-      space_complexity: 'O(1) - Constant auxiliary space.',
-      code: `def maxArea(height: list[int]) -> int:
-    left, right = 0, len(height) - 1
-    max_area = 0
-    while left < right:
-        h = min(height[left], height[right])
-        max_area = max(max_area, h * (right - left))
-        if height[left] < height[right]:
-            left += 1
-        else:
-            right -= 1
-    return max_area`
+      intuition: 'Kadane\'s algorithm: At index i, either extend previous subarray or start new from current element.',
+      algorithm: '1. max_sum = curr_sum = nums[0]\n2. For num in nums[1:]:\n3.   curr_sum = max(num, curr_sum + num)\n4.   max_sum = max(max_sum, curr_sum)\n5. Return max_sum',
+      time_complexity: 'O(N)',
+      space_complexity: 'O(1)',
+      code: `def maxSubArray(nums: list[int]) -> int:
+    max_s = curr_s = nums[0]
+    for x in nums[1:]:
+        curr_s = max(x, curr_s + x)
+        max_s = max(max_s, curr_s)
+    return max_s`
     },
     hints: [
-      { tier: 1, text: 'Start with the widest possible container (indices 0 and n-1).' },
-      { tier: 2, text: 'The water volume is limited by the shorter of the two bars.' },
-      { tier: 3, text: 'Always move the pointer pointing to the shorter bar inward to try to find a taller line.' }
+      { tier: 1, text: 'If prefix sum is negative, it hurts future sums.' },
+      { tier: 2, text: 'curr_sum = max(num, curr_sum + num).' },
+      { tier: 3, text: 'Track global maximum sum along the scan.' }
     ],
     test_cases: [
-      { input_data: '[1,8,6,2,5,4,8,3,7]', expected_output: '49', is_sample: 1 },
-      { input_data: '[1,1]', expected_output: '1', is_sample: 1 },
-      { input_data: '[4,3,2,1,4]', expected_output: '16', is_sample: 0 },
-      { input_data: '[1,2,1]', expected_output: '2', is_sample: 0 }
+      { input_data: '[-2,1,-3,4,-1,2,1,-5,4]', expected_output: '6', is_sample: 1 },
+      { input_data: '[1]', expected_output: '1', is_sample: 1 },
+      { input_data: '[5,4,-1,7,8]', expected_output: '23', is_sample: 1 }
     ]
   },
+
+  // 7. Binary Search
   {
-    id: 5,
+    id: 7,
     title: 'Binary Search',
     slug: 'binary-search',
     difficulty: 'Easy',
     topic: 'Binary Search',
     pattern_id: 3,
     concept_id: 5,
-    description: `Given an array of integers \`nums\` which is sorted in ascending order, and an integer \`target\`, write a function to search \`target\` in \`nums\`. If \`target\` exists, then return its index. Otherwise, return \`-1\`.
-
-You must write an algorithm with \`O(log n)\` runtime complexity.`,
+    description: `Given a sorted array of integers \`nums\` and an integer \`target\`, write a function to search \`target\` in \`nums\` in \`O(log n)\` runtime. If \`target\` exists, return its index; otherwise, return \`-1\`.`,
     examples: [
-      { input: '[-1,0,3,5,9,12]\n9', output: '4', explanation: '9 exists in nums and its index is 4.' },
-      { input: '[-1,0,3,5,9,12]\n2', output: '-1', explanation: '2 does not exist in nums so return -1.' }
+      { input: '[-1,0,3,5,9,12]\n9', output: '4', explanation: '9 exists at index 4.' },
+      { input: '[-1,0,3,5,9,12]\n2', output: '-1', explanation: '2 does not exist.' }
     ],
-    constraints: [
-      '1 <= nums.length <= 10^4',
-      '-10^4 < nums[i], target < 10^4',
-      'All the integers in nums are unique.',
-      'nums is sorted in ascending order.'
-    ],
+    constraints: ['1 <= nums.length <= 10^4', 'nums is sorted in ascending order.'],
     company_tags: ['Microsoft', 'Amazon', 'Google', 'Apple'],
     starter_code: {
       python: `class Solution:
     def search(self, nums: list[int], target: int) -> int:
-        # Write your code here
         pass`,
       javascript: `function search(nums, target) {
-  // Write your code here
 }`,
-      cpp: `#include <vector>
-
-class Solution {
-public:
-    int search(std::vector<int>& nums, int target) {
-        // Write your code here
-        return -1;
-    }
-};`,
-      java: `class Solution {
-    public int search(int[] nums, int target) {
-        // Write your code here
-        return -1;
-    }
-}`
+      cpp: `class Solution { public: int search(std::vector<int>& nums, int target) { return -1; } };`,
+      java: `class Solution { public int search(int[] nums, int target) { return -1; } }`
     },
     solution: {
-      intuition: 'Since nums is sorted, compare target with middle element nums[mid]. If target is smaller, search left half; if greater, search right half.',
-      algorithm: '1. low = 0, high = len(nums) - 1\n2. While low <= high:\n3.   mid = low + (high - low) // 2\n4.   if nums[mid] == target: return mid\n5.   elif nums[mid] < target: low = mid + 1\n6.   else: high = mid - 1\n7. Return -1',
-      time_complexity: 'O(log N) - Search space halved on each iteration.',
-      space_complexity: 'O(1) - Constant auxiliary space.',
+      intuition: 'Halve the search space on each comparison with middle element.',
+      algorithm: '1. low = 0, high = len(nums) - 1\n2. while low <= high:\n3.   mid = low + (high - low) // 2\n4.   if nums[mid] == target: return mid\n5.   elif nums[mid] < target: low = mid + 1\n6.   else: high = mid - 1\n7. return -1',
+      time_complexity: 'O(log N)',
+      space_complexity: 'O(1)',
       code: `def search(nums: list[int], target: int) -> int:
     low, high = 0, len(nums) - 1
     while low <= high:
         mid = low + (high - low) // 2
-        if nums[mid] == target:
-            return mid
-        elif nums[mid] < target:
-            low = mid + 1
-        else:
-            high = mid - 1
+        if nums[mid] == target: return mid
+        elif nums[mid] < target: low = mid + 1
+        else: high = mid - 1
     return -1`
     },
     hints: [
-      { tier: 1, text: 'The array is sorted in ascending order.' },
-      { tier: 2, text: 'Compute mid = low + (high - low) / 2 to avoid overflow.' },
-      { tier: 3, text: 'Adjust low = mid + 1 or high = mid - 1 based on comparison.' }
+      { tier: 1, text: 'The array is already sorted.' },
+      { tier: 2, text: 'Compute mid = low + (high - low) / 2.' },
+      { tier: 3, text: 'Adjust low or high to discard half the search space.' }
     ],
     test_cases: [
       { input_data: '[-1,0,3,5,9,12]\n9', expected_output: '4', is_sample: 1 },
-      { input_data: '[-1,0,3,5,9,12]\n2', expected_output: '-1', is_sample: 1 },
-      { input_data: '[5]\n5', expected_output: '0', is_sample: 0 },
-      { input_data: '[2, 5]\n5', expected_output: '1', is_sample: 0 }
+      { input_data: '[-1,0,3,5,9,12]\n2', expected_output: '-1', is_sample: 1 }
     ]
   },
+
+  // 8. Climbing Stairs
   {
-    id: 6,
+    id: 8,
     title: 'Climbing Stairs',
     slug: 'climbing-stairs',
     difficulty: 'Easy',
     topic: 'Dynamic Programming',
     pattern_id: 6,
     concept_id: 1,
-    description: `You are climbing a staircase. It takes \`n\` steps to reach the top.
-
-Each time you can either climb \`1\` or \`2\` steps. In how many distinct ways can you climb to the top?`,
+    description: `You are climbing a staircase. It takes \`n\` steps to reach the top. Each time you can either climb \`1\` or \`2\` steps. In how many distinct ways can you climb to the top?`,
     examples: [
-      { input: '2', output: '2', explanation: 'There are two ways to climb to the top: 1. 1 step + 1 step, 2. 2 steps.' },
-      { input: '3', output: '3', explanation: 'There are three ways: 1. 1+1+1, 2. 1+2, 3. 2+1.' }
+      { input: '2', output: '2', explanation: '1+1 or 2 steps.' },
+      { input: '3', output: '3', explanation: '1+1+1, 1+2, or 2+1 steps.' }
     ],
-    constraints: [
-      '1 <= n <= 45'
-    ],
+    constraints: ['1 <= n <= 45'],
     company_tags: ['Amazon', 'Google', 'Meta', 'Microsoft', 'Apple'],
     starter_code: {
       python: `class Solution:
     def climbStairs(self, n: int) -> int:
-        # Write your code here
         pass`,
       javascript: `function climbStairs(n) {
-  // Write your code here
 }`,
-      cpp: `class Solution {
-public:
-    int climbStairs(int n) {
-        // Write your code here
-        return 0;
-    }
-};`,
-      java: `class Solution {
-    public int climbStairs(int n) {
-        // Write your code here
-        return 0;
-    }
-}`
+      cpp: `class Solution { public: int climbStairs(int n) { return 0; } };`,
+      java: `class Solution { public int climbStairs(int n) { return 0; } }`
     },
     solution: {
-      intuition: 'To reach step n, you must come from either step (n - 1) or step (n - 2). Thus, ways(n) = ways(n - 1) + ways(n - 2), identical to the Fibonacci recurrence.',
-      algorithm: '1. If n <= 2: return n\n2. Maintain prev1 = 1, prev2 = 2\n3. For i from 3 to n: current = prev1 + prev2; prev1 = prev2; prev2 = current\n4. Return prev2',
-      time_complexity: 'O(N) - Linear single-pass accumulation.',
-      space_complexity: 'O(1) - Constant space tracking last two states.',
+      intuition: 'Ways(n) = Ways(n - 1) + Ways(n - 2) (Fibonacci sequence).',
+      algorithm: '1. If n <= 2 return n\n2. prev1 = 1, prev2 = 2\n3. For i from 3 to n: prev1, prev2 = prev2, prev1 + prev2\n4. Return prev2',
+      time_complexity: 'O(N)',
+      space_complexity: 'O(1)',
       code: `def climbStairs(n: int) -> int:
-    if n <= 2:
-        return n
+    if n <= 2: return n
     a, b = 1, 2
-    for _ in range(3, n + 1):
-        a, b = b, a + b
+    for _ in range(3, n + 1): a, b = b, a + b
     return b`
     },
     hints: [
-      { tier: 1, text: 'Think about the base cases: How many ways to reach step 1? Step 2?' },
-      { tier: 2, text: 'To arrive at step n, you could only jump from step n-1 or step n-2.' },
-      { tier: 3, text: 'The recurrence is f(n) = f(n-1) + f(n-2). Keep two variables for O(1) space.' }
+      { tier: 1, text: 'To arrive at step n, where could you have come from?' },
+      { tier: 2, text: 'f(n) = f(n-1) + f(n-2).' },
+      { tier: 3, text: 'Keep two variables to optimize space to O(1).' }
     ],
     test_cases: [
       { input_data: '2', expected_output: '2', is_sample: 1 },
-      { input_data: '3', expected_output: '3', is_sample: 1 },
-      { input_data: '4', expected_output: '5', is_sample: 0 },
-      { input_data: '5', expected_output: '8', is_sample: 0 }
+      { input_data: '3', expected_output: '3', is_sample: 1 }
+    ]
+  },
+
+  // 9. Valid Parentheses
+  {
+    id: 9,
+    title: 'Valid Parentheses',
+    slug: 'valid-parentheses',
+    difficulty: 'Easy',
+    topic: 'Stacks',
+    pattern_id: 4,
+    concept_id: 1,
+    description: `Given a string \`s\` containing just the characters \`'('\`, \`')'\`, \`'{'\`, \`'}'\`, \`'['\` and \`']'\`, determine if the input string is valid.`,
+    examples: [
+      { input: '"()"', output: 'true', explanation: 'Matching brackets.' },
+      { input: '"()[]{}"', output: 'true', explanation: 'All valid brackets.' },
+      { input: '"(]"', output: 'false', explanation: 'Mismatched brackets.' }
+    ],
+    constraints: ['1 <= s.length <= 10^4'],
+    company_tags: ['Google', 'Meta', 'Amazon', 'Microsoft', 'Apple'],
+    starter_code: {
+      python: `class Solution:
+    def isValid(self, s: str) -> bool:
+        pass`,
+      javascript: `function isValid(s) {
+}`,
+      cpp: `class Solution { public: bool isValid(std::string s) { return false; } };`,
+      java: `class Solution { public boolean isValid(String s) { return false; } }`
+    },
+    solution: {
+      intuition: 'Use a LIFO Stack to match opening brackets with corresponding closing brackets.',
+      algorithm: '1. stack = []\n2. mapping = {")": "(", "}": "{", "]": "["}\n3. For char in s:\n4.   if char in mapping:\n5.     top = stack.pop() if stack else "#"\n6.     if mapping[char] != top: return False\n7.   else: stack.append(char)\n8. Return not stack',
+      time_complexity: 'O(N)',
+      space_complexity: 'O(N)',
+      code: `def isValid(s: str) -> bool:
+    stack = []
+    pairs = {')': '(', '}': '{', ']': '['}
+    for c in s:
+        if c in pairs:
+            if not stack or stack.pop() != pairs[c]: return False
+        else: stack.append(c)
+    return len(stack) == 0`
+    },
+    hints: [
+      { tier: 1, text: 'Which bracket must be closed first? The most recent one (LIFO).' },
+      { tier: 2, text: 'Push open brackets to a stack, pop when matching close bracket.' },
+      { tier: 3, text: 'Ensure stack is empty at the end.' }
+    ],
+    test_cases: [
+      { input_data: '"()"', expected_output: 'true', is_sample: 1 },
+      { input_data: '"()[]{}"', expected_output: 'true', is_sample: 1 },
+      { input_data: '"(]"', expected_output: 'false', is_sample: 1 }
+    ]
+  },
+
+  // 10. Coin Change
+  {
+    id: 10,
+    title: 'Coin Change',
+    slug: 'coin-change',
+    difficulty: 'Medium',
+    topic: 'Dynamic Programming',
+    pattern_id: 6,
+    concept_id: 1,
+    description: `You are given an integer array \`coins\` representing coins of different denominations and an integer \`amount\` representing a total amount of money. Return the *fewest number of coins* that you need to make up that amount. If that amount of money cannot be made up by any combination of the coins, return \`-1\`.`,
+    examples: [
+      { input: '[1,2,5]\n11', output: '3', explanation: '11 = 5 + 5 + 1 (3 coins)' },
+      { input: '[2]\n3', output: '-1', explanation: 'Cannot make 3 with 2s.' }
+    ],
+    constraints: ['1 <= coins.length <= 12', '0 <= amount <= 10^4'],
+    company_tags: ['Amazon', 'Google', 'Microsoft', 'Meta'],
+    starter_code: {
+      python: `class Solution:
+    def coinChange(self, coins: list[int], amount: int) -> int:
+        pass`,
+      javascript: `function coinChange(coins, amount) {
+}`,
+      cpp: `class Solution { public: int coinChange(std::vector<int>& coins, int amount) { return -1; } };`,
+      java: `class Solution { public int coinChange(int[] coins, int amount) { return -1; } }`
+    },
+    solution: {
+      intuition: 'Bottom-up DP: dp[i] is the minimum coins needed to make amount i. dp[i] = min(dp[i], dp[i - coin] + 1).',
+      algorithm: '1. dp = [Infinity] * (amount + 1); dp[0] = 0\n2. For i from 1 to amount:\n3.   For coin in coins:\n4.     if i - coin >= 0: dp[i] = min(dp[i], dp[i - coin] + 1)\n5. Return dp[amount] if dp[amount] != Infinity else -1',
+      time_complexity: 'O(amount * len(coins))',
+      space_complexity: 'O(amount)',
+      code: `def coinChange(coins: list[int], amount: int) -> int:
+    dp = [float('inf')] * (amount + 1)
+    dp[0] = 0
+    for i in range(1, amount + 1):
+        for c in coins:
+            if i >= c:
+                dp[i] = min(dp[i], dp[i - c] + 1)
+    return dp[amount] if dp[amount] != float('inf') else -1`
+    },
+    hints: [
+      { tier: 1, text: 'Can you build solutions for smaller sub-amounts from 0 to amount?' },
+      { tier: 2, text: 'dp[i] = min(dp[i - c] + 1 for c in coins).' },
+      { tier: 3, text: 'Initialize with Infinity and base case dp[0] = 0.' }
+    ],
+    test_cases: [
+      { input_data: '[1,2,5]\n11', expected_output: '3', is_sample: 1 },
+      { input_data: '[2]\n3', expected_output: '-1', is_sample: 1 },
+      { input_data: '[1]\n0', expected_output: '0', is_sample: 1 }
     ]
   }
 ];

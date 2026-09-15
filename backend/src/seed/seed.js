@@ -109,30 +109,29 @@ export async function seedDatabase() {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [c.id, c.title, c.slug, c.description, c.start_time, c.end_time, c.duration_minutes, c.is_rated, c.status]);
 
-    // Assign problems to contest
     await run(`
       INSERT OR REPLACE INTO contest_problems (contest_id, problem_id, point_value, order_index)
       VALUES (?, 1, 100, 1), (?, 2, 200, 2), (?, 3, 300, 3)
     `, [c.id, c.id, c.id]);
   }
 
-  console.log('🌱 Creating Demo Users & Profiles...');
+  console.log('🌱 Creating Demo Learner (Sushmita) & Profiles...');
   const salt = bcrypt.genSaltSync(10);
   const passwordHash = bcrypt.hashSync('shancode123', salt);
 
   await run(`
     INSERT OR REPLACE INTO users (id, username, email, password_hash, role, rating, xp, streak, last_active_date)
-    VALUES (1, 'yashu', 'yashu@shancode.io', ?, 'student', 1540, 1250, 12, DATE('now')),
-           (2, 'admin', 'admin@shancode.io', ?, 'admin', 2100, 8500, 45, DATE('now'))
+    VALUES (1, 'sushmita', 'sushmita@shancode.io', ?, 'student', 1620, 1450, 14, DATE('now')),
+           (2, 'admin', 'admin@shancode.io', ?, 'admin', 2150, 9200, 45, DATE('now'))
   `, [passwordHash, passwordHash]);
 
   await run(`
     INSERT OR REPLACE INTO profiles (user_id, avatar, bio, target_company, interview_readiness, github_url)
-    VALUES (1, 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80', 'Passionate DSA learner targeting FAANG Software Engineer roles', 'Google', 68, 'https://github.com/yashu'),
-           (2, 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80', 'Shancode Lead Architect & Instructor', 'Meta', 95, 'https://github.com/shancode')
+    VALUES (1, 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80', 'Aspiring Senior Software Engineer targeting FAANG & Tier-1 Tech', 'Google', 78, 'https://github.com/Shanaya1201'),
+           (2, 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80', 'Shancode Lead Architect & Instructor', 'Meta', 95, 'https://github.com/Shanaya1201')
   `);
 
-  // Seed sample concept progress for demo user
+  // Seed sample concept progress for Sushmita
   await run(`
     INSERT OR REPLACE INTO concept_progress (user_id, concept_id, video_progress_pct, video_resume_sec, quiz_passed, completed, repetition_stage, next_review_at)
     VALUES (1, 1, 100, 0, 1, 1, 3, DATETIME('now', '+3 days')),
@@ -140,21 +139,22 @@ export async function seedDatabase() {
            (1, 4, 68, 180, 0, 0, 0, NULL)
   `);
 
-  // Seed sample submissions
+  // Seed sample submissions for Sushmita
   await run(`
     INSERT OR REPLACE INTO submissions (id, user_id, problem_id, language, code, verdict, runtime_ms, memory_kb, passed_tests, total_tests)
-    VALUES (1, 1, 1, 'python', 'def twoSum(nums, target):\\n  seen={}\\n  for i,n in enumerate(nums):\\n    if target-n in seen: return [seen[target-n], i]\\n    seen[n]=i', 'Accepted', 48, 14200, 5, 5),
-           (2, 1, 2, 'python', 'def isPalindrome(s):\\n  clean = [c.lower() for c in s if c.isalnum()]\\n  return clean == clean[::-1]', 'Accepted', 36, 15100, 5, 5)
+    VALUES (1, 1, 1, 'python', 'def twoSum(nums, target):\\n  seen={}\\n  for i,n in enumerate(nums):\\n    if target-n in seen: return [seen[target-n], i]\\n    seen[n]=i', 'Accepted', 48, 14200, 3, 3),
+           (2, 1, 2, 'python', 'def isPalindrome(s):\\n  clean = [c.lower() for c in s if c.isalnum()]\\n  return clean == clean[::-1]', 'Accepted', 36, 15100, 3, 3),
+           (3, 1, 6, 'python', 'def maxSubArray(nums):\\n  m = c = nums[0]\\n  for x in nums[1:]: c = max(x, c+x); m = max(m, c)\\n  return m', 'Accepted', 52, 16200, 3, 3)
   `);
 
   // Seed sample discussions
   await run(`
     INSERT OR REPLACE INTO discussions (id, user_id, problem_id, concept_id, title, body, tags_json, upvotes)
-    VALUES (1, 1, 1, NULL, 'Intuitive explanation for why Hash Map is O(1) average lookup in Two Sum', 'Here is why trading O(N) space for O(N) time gives the optimal tradeoff in interviews...', '["Arrays", "HashMap", "Optimization"]', 24),
-           (2, 2, NULL, 2, 'Common Pitfalls when updating Two Pointers in 3Sum problems', 'Remember to skip duplicate elements for both left and right pointers after finding a triplet!', '["TwoPointers", "BestPractices"]', 42)
+    VALUES (1, 1, 1, NULL, 'Intuitive explanation for why Hash Map is O(1) average lookup in Two Sum', 'Here is why trading O(N) space for O(N) time gives the optimal tradeoff in interviews...', '["Arrays", "HashMap", "Optimization"]', 38),
+           (2, 2, NULL, 2, 'Common Pitfalls when updating Two Pointers in 3Sum problems', 'Remember to skip duplicate elements for both left and right pointers after finding a triplet!', '["TwoPointers", "BestPractices"]', 52)
   `);
 
-  console.log('✅ Shancode Database Seeded Successfully!');
+  console.log('✅ Shancode Database Seeded Successfully for Learner Sushmita!');
 }
 
 if (process.argv[1].endsWith('seed.js')) {
