@@ -135,19 +135,21 @@ export async function run(sql, params = []) {
   if (dbObj.type === 'pg') {
     let pgSql = toPgSql(sql);
     if (/^\s*INSERT\s+INTO/i.test(pgSql) && !/RETURNING/i.test(pgSql)) {
-      pgSql += ' RETURNING id';
+      pgSql += ' RETURNING *';
     }
     const res = await dbObj.pool.query(pgSql, cleanParams);
+    const row = res.rows[0];
+    const insertId = row ? (row.id ?? row.user_id ?? 0) : 0;
     return { 
       changes: res.rowCount, 
-      lastInsertRowid: res.rows[0]?.id || 0 
+      lastInsertRowid: Number(insertId)
     };
   } else {
     dbObj.db.run(sql, cleanParams);
-    saveSqlite();
     const res = dbObj.db.exec("SELECT last_insert_rowid() as id;");
     const lastId = res[0]?.values[0]?.[0] || 0;
-    return { changes: 1, lastInsertRowid: lastId };
+    saveSqlite();
+    return { changes: 1, lastInsertRowid: Number(lastId) };
   }
 }
 
@@ -171,9 +173,13 @@ export async function withTransaction(callback) {
         query: (sql, params) => client.query(toPgSql(sql), sanitizeParams(params)).then(r => r.rows),
         run: async (sql, params) => {
           let pgSql = toPgSql(sql);
-          if (/^\s*INSERT\s+INTO/i.test(pgSql) && !/RETURNING/i.test(pgSql)) pgSql += ' RETURNING id';
+          if (/^\s*INSERT\s+INTO/i.test(pgSql) && !/RETURNING/i.test(pgSql)) {
+            pgSql += ' RETURNING *';
+          }
           const r = await client.query(pgSql, sanitizeParams(params));
-          return { changes: r.rowCount, lastInsertRowid: r.rows[0]?.id || 0 };
+          const row = r.rows[0];
+          const insertId = row ? (row.id ?? row.user_id ?? 0) : 0;
+          return { changes: r.rowCount, lastInsertRowid: Number(insertId) };
         }
       });
       await client.query('COMMIT');

@@ -44,4 +44,60 @@ describe('Agent 15: Authentication & Token Security Tests', () => {
     assert.strictEqual(hash1, hash2, 'Hash should be deterministic');
     assert.strictEqual(hash1.length, 64, 'SHA-256 hex string should be 64 chars');
   });
+
+  test('Should successfully register user, create profile and refresh token without column error', async () => {
+    const testUsername = `reg_test_${Date.now()}`;
+    const testEmail = `${testUsername}@shancode.io`;
+    const password = 'ValidPassword123';
+    const passwordHash = bcrypt.hashSync(password, 10);
+
+    // 1. Insert user
+    const insertUserRes = await run(`
+      INSERT INTO users (username, email, password_hash, role, rating, xp, streak, last_active_date)
+      VALUES (?, ?, ?, 'student', 1200, 100, 1, DATE('now'))
+    `, [testUsername, testEmail, passwordHash]);
+
+    assert.ok(insertUserRes.lastInsertRowid > 0, 'Should return valid inserted user ID');
+    const newUserId = insertUserRes.lastInsertRowid;
+
+    // 2. Insert profile (table with user_id as PK, no id column)
+    const insertProfileRes = await run(`
+      INSERT INTO profiles (user_id, avatar, bio, target_company, interview_readiness)
+      VALUES (?, ?, 'Test Learner Profile', ?, 25)
+    `, [newUserId, 'https://avatar.url', 'Google']);
+
+    assert.ok(insertProfileRes.changes > 0, 'Should insert profile successfully');
+
+    // 3. Insert refresh token
+    const tokenHash = hashToken(`test_refresh_${Date.now()}`);
+    const expiresAt = new Date(Date.now() + 7 * 86400000).toISOString();
+    const insertTokenRes = await run(`
+      INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
+      VALUES (?, ?, ?)
+    `, [newUserId, tokenHash, expiresAt]);
+
+    assert.ok(insertTokenRes.changes > 0, 'Should insert refresh token successfully');
+
+    // 4. Verify user lookup with profile join
+    const userLookup = await query(`
+      SELECT u.id, u.username, u.email, u.role, u.password_hash, p.bio, p.target_company
+      FROM users u
+      LEFT JOIN profiles p ON u.id = p.user_id
+      WHERE u.id = ?
+    `, [newUserId]);
+
+    assert.strictEqual(userLookup.length, 1, 'Should find inserted user');
+    assert.strictEqual(userLookup[0].username, testUsername);
+    assert.strictEqual(userLookup[0].target_company, 'Google');
+    assert.ok(bcrypt.compareSync(password, userLookup[0].password_hash), 'Password should verify');
+  });
+
+  test('Should detect duplicate username or email during registration lookup', async () => {
+    const existing = await query(`SELECT id FROM users LIMIT 1`);
+    if (existing.length > 0) {
+      const user = (await query(`SELECT username, email FROM users WHERE id = ?`, [existing[0].id]))[0];
+      const dupCheck = await query(`SELECT id FROM users WHERE username = ? OR email = ?`, [user.username, user.email]);
+      assert.ok(dupCheck.length > 0, 'Duplicate check should identify existing user');
+    }
+  });
 });
