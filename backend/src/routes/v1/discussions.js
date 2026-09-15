@@ -1,8 +1,24 @@
 import express from 'express';
 import { query, run } from '../../config/db.js';
 import { optionalAuthMiddleware, authMiddleware } from '../../config/jwt.js';
+import { rateLimit } from '../../middleware/rateLimit.js';
 
 const router = express.Router();
+
+const postLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: 'You are posting too quickly. Please wait a minute.'
+});
+
+function sanitizeHtml(str) {
+  if (!str || typeof str !== 'string') return '';
+  return str
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+    .replace(/javascript:/gi, '')
+    .trim();
+}
 
 // Get discussion list
 router.get('/', optionalAuthMiddleware, async (req, res) => {
@@ -46,17 +62,20 @@ router.get('/', optionalAuthMiddleware, async (req, res) => {
 });
 
 // Create discussion post
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', authMiddleware, postLimiter, async (req, res) => {
   try {
     const { title, body, problem_id, concept_id, tags } = req.body;
     if (!title || !body) {
       return res.status(400).json({ success: false, error: 'Title and body are required' });
     }
 
+    const cleanTitle = sanitizeHtml(title);
+    const cleanBody = sanitizeHtml(body);
+
     const result = await run(`
       INSERT INTO discussions (user_id, problem_id, concept_id, title, body, tags_json)
       VALUES (?, ?, ?, ?, ?, ?)
-    `, [req.user.id, problem_id || null, concept_id || null, title.trim(), body.trim(), JSON.stringify(tags || [])]);
+    `, [req.user.id, problem_id || null, concept_id || null, cleanTitle, cleanBody, JSON.stringify(tags || [])]);
 
     return res.status(201).json({ success: true, id: result.lastInsertRowid });
   } catch (err) {
@@ -95,7 +114,7 @@ router.get('/:id/comments', optionalAuthMiddleware, async (req, res) => {
 });
 
 // Add comment
-router.post('/:id/comments', authMiddleware, async (req, res) => {
+router.post('/:id/comments', authMiddleware, postLimiter, async (req, res) => {
   try {
     const id = Number(req.params.id);
     const { body } = req.body;
@@ -103,10 +122,12 @@ router.post('/:id/comments', authMiddleware, async (req, res) => {
       return res.status(400).json({ success: false, error: 'Comment body is required' });
     }
 
+    const cleanBody = sanitizeHtml(body);
+
     await run(`
       INSERT INTO discussion_comments (discussion_id, user_id, body)
       VALUES (?, ?, ?)
-    `, [id, req.user.id, body.trim()]);
+    `, [id, req.user.id, cleanBody]);
 
     return res.status(201).json({ success: true, message: 'Comment added' });
   } catch (err) {
