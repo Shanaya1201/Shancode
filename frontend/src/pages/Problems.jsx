@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Search, Filter, CheckCircle, Clock, Circle, ArrowUpDown, 
-  Sparkles, Zap, Building2, BookOpen, BrainCircuit 
+  Sparkles, Zap, Building2, BookOpen, BrainCircuit, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight 
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -18,11 +18,18 @@ export default function Problems() {
   const [status, setStatus] = useState('All');
   const [search, setSearch] = useState('');
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 25;
+
   const fetchProblems = () => {
     setLoading(true);
     api.getProblems({ difficulty, topic, company, status, search })
       .then(res => {
-        if (res.success) setProblems(res.problems);
+        if (res.success) {
+          setProblems(res.problems || []);
+          setCurrentPage(1);
+        }
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -37,10 +44,21 @@ export default function Problems() {
     fetchProblems();
   };
 
-  const topics = ['All', 'Arrays', 'Strings', 'Binary Search', 'Dynamic Programming', 'Trees', 'Graphs'];
-  const companies = ['All', 'Google', 'Amazon', 'Meta', 'Microsoft', 'Apple', 'Netflix'];
+  const topics = [
+    'All', 'Arrays & Hashing', 'Two Pointers', 'Sliding Window', 'Linked Lists',
+    'Stacks & Queues', 'Binary Search', 'Trees & BST', 'Heaps & Priority Queue',
+    'Graphs & BFS/DFS', 'Backtracking', '1D Dynamic Programming', '2D Dynamic Programming',
+    'Greedy Algorithms', 'Tries & Prefix Trees', 'Bit Manipulation & Math'
+  ];
+  const companies = ['All', 'Google', 'Amazon', 'Meta', 'Microsoft', 'Apple', 'Netflix', 'Uber', 'Stripe', 'Bloomberg'];
   const difficulties = ['All', 'Easy', 'Medium', 'Hard'];
   const statuses = ['All', 'Solved', 'Attempted', 'Unsolved'];
+
+  // Pagination calculations
+  const totalProblems = problems.length;
+  const totalPages = Math.ceil(totalProblems / pageSize) || 1;
+  const startIndex = (currentPage - 1) * pageSize;
+  const paginatedProblems = problems.slice(startIndex, startIndex + pageSize);
 
   return (
     <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '32px 24px' }} className="animate-fade-in">
@@ -57,12 +75,12 @@ export default function Problems() {
         border: '1px solid var(--border-glass)'
       }}>
         <div>
-          <span className="badge badge-concept" style={{ marginBottom: '8px' }}>PROBLEM ARENA</span>
+          <span className="badge badge-concept" style={{ marginBottom: '8px' }}>1,000+ PROBLEM ARENA</span>
           <h1 style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
             Curated Coding Problems
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-            Every problem connects back to a foundational concept. Understand the intuition, then solve.
+            Every problem connects back to a foundational concept. Total in Catalog: <strong>{totalProblems} Problems</strong>
           </p>
         </div>
 
@@ -93,7 +111,7 @@ export default function Problems() {
             <Search size={16} color="var(--text-muted)" />
             <input
               type="text"
-              placeholder="Search by title, topic, or keyword..."
+              placeholder="Search 1,000+ problems by title, topic, or company..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               style={{
@@ -130,7 +148,7 @@ export default function Problems() {
                 outline: 'none'
               }}
             >
-              {difficulties.map(d => <option key={d} value={d}>{d}</option>)}
+              {difficulties.map(d => <option key={d} value={d} style={{ background: '#0f172a' }}>{d}</option>)}
             </select>
           </div>
 
@@ -150,13 +168,13 @@ export default function Problems() {
                 outline: 'none'
               }}
             >
-              {topics.map(t => <option key={t} value={t}>{t}</option>)}
+              {topics.map(t => <option key={t} value={t} style={{ background: '#0f172a' }}>{t}</option>)}
             </select>
           </div>
 
           {/* Company filter */}
           <div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Company</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Target Company</span>
             <select
               value={company}
               onChange={e => setCompany(e.target.value)}
@@ -170,13 +188,13 @@ export default function Problems() {
                 outline: 'none'
               }}
             >
-              {companies.map(c => <option key={c} value={c}>{c}</option>)}
+              {companies.map(c => <option key={c} value={c} style={{ background: '#0f172a' }}>{c}</option>)}
             </select>
           </div>
 
           {/* Status filter */}
           <div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Status</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>My Status</span>
             <select
               value={status}
               onChange={e => setStatus(e.target.value)}
@@ -190,7 +208,7 @@ export default function Problems() {
                 outline: 'none'
               }}
             >
-              {statuses.map(s => <option key={s} value={s}>{s}</option>)}
+              {statuses.map(s => <option key={s} value={s} style={{ background: '#0f172a' }}>{s}</option>)}
             </select>
           </div>
 
@@ -198,7 +216,7 @@ export default function Problems() {
       </div>
 
       {/* Problems Data Table */}
-      <div className="glass-panel" style={{ overflow: 'hidden' }}>
+      <div className="glass-panel" style={{ overflow: 'hidden', marginBottom: '20px' }}>
         {loading ? (
           <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
             Loading problems...
@@ -220,7 +238,7 @@ export default function Problems() {
               </tr>
             </thead>
             <tbody>
-              {problems.map((p, idx) => {
+              {paginatedProblems.map((p, idx) => {
                 const isSolved = p.status === 'solved';
                 const isAttempted = p.status === 'attempted';
                 return (
@@ -260,7 +278,7 @@ export default function Problems() {
                       )}
                     </td>
                     <td style={{ padding: '16px 18px' }}>
-                      <span className={`badge badge-${p.difficulty.toLowerCase()}`}>
+                      <span className={`badge badge-${p.difficulty?.toLowerCase()}`}>
                         {p.difficulty}
                       </span>
                     </td>
@@ -300,6 +318,89 @@ export default function Problems() {
           </table>
         )}
       </div>
+
+      {/* Pagination Bar */}
+      {totalProblems > pageSize && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '16px 20px',
+          backgroundColor: 'rgba(15, 23, 42, 0.6)',
+          borderRadius: '12px',
+          border: '1px solid var(--border-glass)'
+        }}>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            Showing <strong>{startIndex + 1}</strong> to <strong>{Math.min(startIndex + pageSize, totalProblems)}</strong> of <strong>{totalProblems}</strong> problems
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+              style={{
+                padding: '6px 10px',
+                backgroundColor: 'var(--bg-tertiary)',
+                border: '1px solid var(--border-glass)',
+                borderRadius: '6px',
+                color: currentPage === 1 ? 'var(--text-muted)' : '#fff',
+                cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+              }}
+            >
+              <ChevronsLeft size={16} />
+            </button>
+
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              style={{
+                padding: '6px 12px',
+                backgroundColor: 'var(--bg-tertiary)',
+                border: '1px solid var(--border-glass)',
+                borderRadius: '6px',
+                color: currentPage === 1 ? 'var(--text-muted)' : '#fff',
+                cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+              }}
+            >
+              Previous
+            </button>
+
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-primary)', padding: '0 8px' }}>
+              Page {currentPage} of {totalPages}
+            </span>
+
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              style={{
+                padding: '6px 12px',
+                backgroundColor: 'var(--bg-tertiary)',
+                border: '1px solid var(--border-glass)',
+                borderRadius: '6px',
+                color: currentPage === totalPages ? 'var(--text-muted)' : '#fff',
+                cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
+              }}
+            >
+              Next
+            </button>
+
+            <button
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+              style={{
+                padding: '6px 10px',
+                backgroundColor: 'var(--bg-tertiary)',
+                border: '1px solid var(--border-glass)',
+                borderRadius: '6px',
+                color: currentPage === totalPages ? 'var(--text-muted)' : '#fff',
+                cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
+              }}
+            >
+              <ChevronsRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { getDb, run, exec, query } from '../config/db.js';
+import { getDb, run, exec, query, withTransaction } from '../config/db.js';
 import { initSchema } from '../models/schema.js';
 import { SECTIONS, PATTERNS, CONCEPTS, PROBLEMS, ACHIEVEMENTS, CONTESTS } from './seedData.js';
 
@@ -7,7 +7,7 @@ export async function seedDatabase() {
   console.log('🚀 Initializing Shancode Database Schema...');
   await initSchema();
 
-  console.log('🌱 Seeding Sections...');
+  console.log(`🌱 Seeding ${SECTIONS.length} Sections...`);
   for (const s of SECTIONS) {
     await run(`
       INSERT OR REPLACE INTO sections (id, title, slug, description, icon, order_index)
@@ -15,7 +15,7 @@ export async function seedDatabase() {
     `, [s.id, s.title, s.slug, s.description, s.icon, s.order_index]);
   }
 
-  console.log('🌱 Seeding Patterns & Levels...');
+  console.log(`🌱 Seeding ${PATTERNS.length} Patterns & Mastery Levels...`);
   for (const p of PATTERNS) {
     await run(`
       INSERT OR REPLACE INTO patterns (id, name, slug, description, total_levels, icon)
@@ -32,67 +32,71 @@ export async function seedDatabase() {
     }
   }
 
-  console.log('🌱 Seeding Concepts & Quizzes...');
-  for (const c of CONCEPTS) {
-    await run(`
-      INSERT OR REPLACE INTO concepts (
-        id, section_id, title, slug, summary, intuition, when_to_use, visual_svg,
-        code_samples_json, common_mistakes_json, video_url, video_source, order_index
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [
-      c.id, c.section_id, c.title, c.slug, c.summary, c.intuition, c.when_to_use, c.visual_svg,
-      JSON.stringify(c.code_samples), JSON.stringify(c.common_mistakes), c.video_url, c.video_source, c.order_index
-    ]);
+  console.log(`🌱 Seeding ${CONCEPTS.length} Concept Video Masterclasses & Quizzes...`);
+  await withTransaction(async (tx) => {
+    for (const c of CONCEPTS) {
+      await tx.run(`
+        INSERT OR REPLACE INTO concepts (
+          id, section_id, title, slug, summary, intuition, when_to_use, visual_svg,
+          code_samples_json, common_mistakes_json, video_url, video_source, order_index
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        c.id, c.section_id, c.title, c.slug, c.summary, c.intuition, c.when_to_use, c.visual_svg,
+        JSON.stringify(c.code_samples), JSON.stringify(c.common_mistakes), c.video_url, c.video_source, c.order_index
+      ]);
 
-    if (c.quiz) {
-      const qRes = await run(`
-        INSERT OR REPLACE INTO quizzes (id, concept_id, title, passing_score)
-        VALUES (?, ?, ?, 80)
-      `, [c.id, c.id, c.quiz.title]);
+      if (c.quiz) {
+        await tx.run(`
+          INSERT OR REPLACE INTO quizzes (id, concept_id, title, passing_score)
+          VALUES (?, ?, ?, 80)
+        `, [c.id, c.id, c.quiz.title]);
 
-      for (const q of c.quiz.questions) {
-        await run(`
-          INSERT INTO quiz_questions (quiz_id, question, options_json, correct_option_index, explanation)
-          VALUES (?, ?, ?, ?, ?)
-        `, [c.id, q.question, JSON.stringify(q.options), q.correct_option_index, q.explanation]);
+        for (const q of c.quiz.questions) {
+          await tx.run(`
+            INSERT INTO quiz_questions (quiz_id, question, options_json, correct_option_index, explanation)
+            VALUES (?, ?, ?, ?, ?)
+          `, [c.id, q.question, JSON.stringify(q.options), q.correct_option_index, q.explanation]);
+        }
       }
     }
-  }
+  });
 
-  console.log('🌱 Seeding Problems, Hints & Test Cases...');
-  for (const p of PROBLEMS) {
-    await run(`
-      INSERT OR REPLACE INTO problems (
-        id, title, slug, difficulty, topic, pattern_id, concept_id, description,
-        examples_json, constraints_json, starter_code_json, solution_json,
-        acceptance_rate, company_tags_json
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [
-      p.id, p.title, p.slug, p.difficulty, p.topic, p.pattern_id, p.concept_id, p.description,
-      JSON.stringify(p.examples), JSON.stringify(p.constraints), JSON.stringify(p.starter_code),
-      JSON.stringify(p.solution), 72, JSON.stringify(p.company_tags)
-    ]);
+  console.log(`🌱 Seeding ${PROBLEMS.length} Curated Coding Problems & Test Suites...`);
+  await withTransaction(async (tx) => {
+    for (const p of PROBLEMS) {
+      await tx.run(`
+        INSERT OR REPLACE INTO problems (
+          id, title, slug, difficulty, topic, pattern_id, concept_id, description,
+          examples_json, constraints_json, starter_code_json, solution_json,
+          acceptance_rate, company_tags_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        p.id, p.title, p.slug, p.difficulty, p.topic, p.pattern_id, p.concept_id, p.description,
+        JSON.stringify(p.examples), JSON.stringify(p.constraints), JSON.stringify(p.starter_code),
+        JSON.stringify(p.solution), p.acceptance_rate || 72, JSON.stringify(p.company_tags)
+      ]);
 
-    // Test cases
-    if (p.test_cases) {
-      for (const tc of p.test_cases) {
-        await run(`
-          INSERT INTO test_cases (problem_id, input_data, expected_output, is_sample)
-          VALUES (?, ?, ?, ?)
-        `, [p.id, tc.input_data, tc.expected_output, tc.is_sample]);
+      // Test cases
+      if (p.test_cases) {
+        for (const tc of p.test_cases) {
+          await tx.run(`
+            INSERT INTO test_cases (problem_id, input_data, expected_output, is_sample)
+            VALUES (?, ?, ?, ?)
+          `, [p.id, tc.input_data, tc.expected_output, tc.is_sample]);
+        }
+      }
+
+      // Hints
+      if (p.hints) {
+        for (const h of p.hints) {
+          await tx.run(`
+            INSERT INTO hints (problem_id, tier, hint_text)
+            VALUES (?, ?, ?)
+          `, [p.id, h.tier, h.text]);
+        }
       }
     }
-
-    // Hints
-    if (p.hints) {
-      for (const h of p.hints) {
-        await run(`
-          INSERT INTO hints (problem_id, tier, hint_text)
-          VALUES (?, ?, ?)
-        `, [p.id, h.tier, h.text]);
-      }
-    }
-  }
+  });
 
   console.log('🌱 Seeding Achievements...');
   for (const a of ACHIEVEMENTS) {
@@ -135,8 +139,8 @@ export async function seedDatabase() {
   await run(`
     INSERT OR REPLACE INTO concept_progress (user_id, concept_id, video_progress_pct, video_resume_sec, quiz_passed, completed, repetition_stage, next_review_at)
     VALUES (1, 1, 100, 0, 1, 1, 3, DATETIME('now', '+3 days')),
-           (1, 2, 85, 240, 1, 1, 2, DATETIME('now', '+1 days')),
-           (1, 4, 68, 180, 0, 0, 0, NULL)
+           (1, 4, 85, 240, 1, 1, 2, DATETIME('now', '+1 days')),
+           (1, 7, 68, 180, 0, 0, 0, NULL)
   `);
 
   // Seed sample submissions for Sushmita
@@ -144,17 +148,17 @@ export async function seedDatabase() {
     INSERT OR REPLACE INTO submissions (id, user_id, problem_id, language, code, verdict, runtime_ms, memory_kb, passed_tests, total_tests)
     VALUES (1, 1, 1, 'python', 'def twoSum(nums, target):\\n  seen={}\\n  for i,n in enumerate(nums):\\n    if target-n in seen: return [seen[target-n], i]\\n    seen[n]=i', 'Accepted', 48, 14200, 3, 3),
            (2, 1, 2, 'python', 'def isPalindrome(s):\\n  clean = [c.lower() for c in s if c.isalnum()]\\n  return clean == clean[::-1]', 'Accepted', 36, 15100, 3, 3),
-           (3, 1, 6, 'python', 'def maxSubArray(nums):\\n  m = c = nums[0]\\n  for x in nums[1:]: c = max(x, c+x); m = max(m, c)\\n  return m', 'Accepted', 52, 16200, 3, 3)
+           (3, 1, 3, 'python', 'def maxArea(height):\\n  l, r = 0, len(height)-1\\n  ans = 0\\n  while l < r: ans = max(ans, min(height[l], height[r])*(r-l));\\n  if height[l] < height[r]: l += 1\\n  else: r -= 1\\n  return ans', 'Accepted', 52, 16200, 1, 1)
   `);
 
   // Seed sample discussions
   await run(`
     INSERT OR REPLACE INTO discussions (id, user_id, problem_id, concept_id, title, body, tags_json, upvotes)
     VALUES (1, 1, 1, NULL, 'Intuitive explanation for why Hash Map is O(1) average lookup in Two Sum', 'Here is why trading O(N) space for O(N) time gives the optimal tradeoff in interviews...', '["Arrays", "HashMap", "Optimization"]', 38),
-           (2, 2, NULL, 2, 'Common Pitfalls when updating Two Pointers in 3Sum problems', 'Remember to skip duplicate elements for both left and right pointers after finding a triplet!', '["TwoPointers", "BestPractices"]', 52)
+           (2, 2, NULL, 4, 'Common Pitfalls when updating Two Pointers in 3Sum problems', 'Remember to skip duplicate elements for both left and right pointers after finding a triplet!', '["TwoPointers", "BestPractices"]', 52)
   `);
 
-  console.log('✅ Shancode Database Seeded Successfully for Learner Sushmita!');
+  console.log('✅ Shancode Database Seeded with 37 Video Concepts & 1,000+ Problems!');
 }
 
 if (process.argv[1].endsWith('seed.js')) {

@@ -13,6 +13,11 @@ let sqlDb = null;
 let pgPool = null;
 let supabaseClient = null;
 
+// Sanitize parameters so undefined becomes null
+function sanitizeParams(params = []) {
+  return params.map(p => (p === undefined ? null : p));
+}
+
 // Initialize Supabase Admin Client for privileged operations
 export function getSupabase() {
   if (supabaseClient) return supabaseClient;
@@ -89,14 +94,15 @@ function toPgSql(sql) {
 
 // Unified query helper for Supabase PostgreSQL & SQLite
 export async function query(sql, params = []) {
+  const cleanParams = sanitizeParams(params);
   const dbObj = await getDb();
   if (dbObj.type === 'pg') {
     const pgSql = toPgSql(sql);
-    const res = await dbObj.pool.query(pgSql, params);
+    const res = await dbObj.pool.query(pgSql, cleanParams);
     return res.rows;
   } else {
     const stmt = dbObj.db.prepare(sql);
-    stmt.bind(params);
+    stmt.bind(cleanParams);
     const rows = [];
     while (stmt.step()) {
       rows.push(stmt.getAsObject());
@@ -107,19 +113,20 @@ export async function query(sql, params = []) {
 }
 
 export async function run(sql, params = []) {
+  const cleanParams = sanitizeParams(params);
   const dbObj = await getDb();
   if (dbObj.type === 'pg') {
     let pgSql = toPgSql(sql);
     if (/^\s*INSERT\s+INTO/i.test(pgSql) && !/RETURNING/i.test(pgSql)) {
       pgSql += ' RETURNING id';
     }
-    const res = await dbObj.pool.query(pgSql, params);
+    const res = await dbObj.pool.query(pgSql, cleanParams);
     return { 
       changes: res.rowCount, 
       lastInsertRowid: res.rows[0]?.id || 0 
     };
   } else {
-    dbObj.db.run(sql, params);
+    dbObj.db.run(sql, cleanParams);
     saveSqlite();
     const res = dbObj.db.exec("SELECT last_insert_rowid() as id;");
     const lastId = res[0]?.values[0]?.[0] || 0;
@@ -144,11 +151,11 @@ export async function withTransaction(callback) {
     try {
       await client.query('BEGIN');
       const result = await callback({
-        query: (sql, params) => client.query(toPgSql(sql), params).then(r => r.rows),
+        query: (sql, params) => client.query(toPgSql(sql), sanitizeParams(params)).then(r => r.rows),
         run: async (sql, params) => {
           let pgSql = toPgSql(sql);
           if (/^\s*INSERT\s+INTO/i.test(pgSql) && !/RETURNING/i.test(pgSql)) pgSql += ' RETURNING id';
-          const r = await client.query(pgSql, params);
+          const r = await client.query(pgSql, sanitizeParams(params));
           return { changes: r.rowCount, lastInsertRowid: r.rows[0]?.id || 0 };
         }
       });
@@ -164,8 +171,18 @@ export async function withTransaction(callback) {
     try {
       dbObj.db.exec('BEGIN TRANSACTION;');
       const result = await callback({
-        query: (sql, params) => query(sql, params),
-        run: (sql, params) => run(sql, params)
+        query: (sql, params) => {
+          const stmt = dbObj.db.prepare(sql);
+          stmt.bind(sanitizeParams(params));
+          const rows = [];
+          while (stmt.step()) rows.push(stmt.getAsObject());
+          stmt.free();
+          return rows;
+        },
+        run: (sql, params) => {
+          dbObj.db.run(sql, sanitizeParams(params));
+          return { changes: 1, lastInsertRowid: 0 };
+        }
       });
       dbObj.db.exec('COMMIT;');
       saveSqlite();

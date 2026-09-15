@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Play, CheckCircle2, Flame, ArrowRight, Target, AlertTriangle, 
-  Sparkles, TrendingUp, BookOpen, Clock, Award, ShieldAlert, BrainCircuit,
+  Sparkles, TrendingUp, BookOpen, Clock, Award, BrainCircuit,
   Zap, Code2, Shield, User, Lock, Mail, Building, Terminal, Layers, Cpu,
-  Search, GitBranch, Trophy, BarChart3, Check, Star, ChevronRight
+  Search, GitBranch, Trophy, BarChart3, Check, Star, ChevronRight, Video
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -29,9 +29,6 @@ export default function Home() {
   const [regEmail, setRegEmail] = useState('');
   const [regPass, setRegPass] = useState('');
   const [regTarget, setRegTarget] = useState('Google');
-
-  // Interactive Live Demo tab state
-  const [interactiveTab, setInteractiveTab] = useState('concept'); // 'concept' | 'tutor' | 'patterns'
 
   useEffect(() => {
     if (user) {
@@ -189,7 +186,7 @@ export default function Home() {
               maxWidth: '620px',
               marginBottom: '32px'
             }}>
-              Learn algorithmic concepts with visual intuition, practice code in our live sandbox, unlock progressive hints with the <strong>Socratic AI Tutor</strong>, and track your interview readiness for <strong>FAANG & Top Tech</strong>.
+              Learn foundational algorithms through <strong>35+ visual video masterclasses</strong>, solve over <strong>1,000+ curated interview problems</strong>, receive progressive guidance from our <strong>Socratic AI Tutor</strong>, and measure your interview readiness for <strong>FAANG & Top Tech</strong>.
             </p>
 
             {/* Action Buttons */}
@@ -222,7 +219,7 @@ export default function Home() {
                       fontWeight: 600
                     }}
                   >
-                    <Zap size={18} color="var(--accent-primary)" /> Solve Problems
+                    <Zap size={18} color="var(--accent-primary)" /> Solve 1,000+ Problems
                   </button>
                 </>
               ) : (
@@ -269,19 +266,19 @@ export default function Home() {
               borderTop: '1px solid rgba(255,255,255,0.08)'
             }}>
               <div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff' }}>15</div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#fff' }}>35+</div>
+                <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Video Masterclasses</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--accent-primary)' }}>1,000+</div>
+                <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Curated Problems</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--accent-cyan)' }}>15</div>
                 <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Curriculum Tracks</div>
               </div>
               <div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--accent-primary)' }}>150+</div>
-                <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Curated Patterns</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--success)' }}>100%</div>
-                <div style={{ fontSize: '0.8rem', color: '#64748b' }}>PostgreSQL Backed</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#f59e0b' }}>AI</div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#f59e0b' }}>AI</div>
                 <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Socratic Tutor</div>
               </div>
             </div>
@@ -622,7 +619,7 @@ export default function Home() {
           }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                <span className="badge badge-concept">AUTHENTICATED LEARNER</span>
+                <span className="badge badge-concept">LEARNER WORKSPACE</span>
                 <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Role: {user.role?.toUpperCase()}</span>
               </div>
               <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
@@ -646,7 +643,7 @@ export default function Home() {
                 className="btn-secondary"
                 style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px' }}
               >
-                <Zap size={18} /> Daily Practice
+                <Zap size={18} /> Problem Arena
               </button>
             </div>
           </div>
@@ -888,7 +885,7 @@ export default function Home() {
               Sequential Prerequisite Graph
             </h3>
             <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '20px' }}>
-              Never get stuck jumping into Advanced DP without understanding recursion invariants. Our PostgreSQL DAG engine unlocks lessons only when prerequisites are mastered.
+              Never get stuck jumping into Advanced DP without understanding recursion invariants. Our DAG engine unlocks lessons only when prerequisites are mastered.
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-primary)', fontSize: '0.85rem', fontWeight: 700 }}>
               <span>Explored in 15 Sections</span> <ChevronRight size={16} />
@@ -990,7 +987,7 @@ export default function Home() {
             ].map(track => (
               <div
                 key={track.id}
-                onClick={() => navigate(user ? '/learn' : '/learn')}
+                onClick={() => navigate('/learn')}
                 style={{
                   padding: '20px',
                   backgroundColor: '#070a13',
@@ -1016,7 +1013,7 @@ export default function Home() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 5. FOOTER & DEPLOYMENT HEALTH INDICATOR */}
+      {/* 5. FOOTER */}
       {/* ========================================================================= */}
       <footer style={{
         borderTop: '1px solid rgba(255,255,255,0.08)',
@@ -1043,35 +1040,49 @@ export default function Home() {
               </span>
             </div>
 
-            {/* Live Stack Badges */}
+            {/* Product Value Badges */}
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
               <span style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '4px 10px',
-                borderRadius: '6px',
-                backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
-                color: 'var(--success)',
-                fontSize: '0.75rem',
+                padding: '5px 12px',
+                borderRadius: '8px',
+                backgroundColor: 'rgba(99, 102, 241, 0.12)',
+                border: '1px solid rgba(99, 102, 241, 0.3)',
+                color: '#a5b4fc',
+                fontSize: '0.8rem',
                 fontWeight: 700
               }}>
-                <CheckCircle2 size={13} /> Supabase PostgreSQL Online
+                <Video size={14} /> 35+ Concept Masterclasses
               </span>
               <span style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '4px 10px',
-                borderRadius: '6px',
-                backgroundColor: 'rgba(99, 102, 241, 0.12)',
-                border: '1px solid rgba(99, 102, 241, 0.3)',
-                color: '#a5b4fc',
-                fontSize: '0.75rem',
+                padding: '5px 12px',
+                borderRadius: '8px',
+                backgroundColor: 'rgba(56, 189, 248, 0.12)',
+                border: '1px solid rgba(56, 189, 248, 0.3)',
+                color: 'var(--accent-cyan)',
+                fontSize: '0.8rem',
                 fontWeight: 700
               }}>
-                <Zap size={13} /> Socratic AI Ready
+                <Zap size={14} /> 1,000+ Practice Problems
+              </span>
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '5px 12px',
+                borderRadius: '8px',
+                backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                border: '1px solid rgba(245, 158, 11, 0.3)',
+                color: '#f59e0b',
+                fontSize: '0.8rem',
+                fontWeight: 700
+              }}>
+                <Trophy size={14} /> FAANG Mock Contests
               </span>
             </div>
           </div>
@@ -1086,7 +1097,7 @@ export default function Home() {
             paddingTop: '20px'
           }}>
             <div>© 2026 ShanCode Platform. Learn the concept. Master the pattern. Solve the problem.</div>
-            <div>Deployment Status: Production Ready</div>
+            <div>Curated for Aspiring Software Engineers targeting FAANG & Top Tech</div>
           </div>
         </div>
       </footer>
